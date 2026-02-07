@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jialu | Creative Technologist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paper: '#f4f1ea',
+              ink: '#1a1a1a',
+              warm: '#e6dcd3',
+              accent: '#ff6b6b',
+              tech: '#4a90e2',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              serif: ['Merriweather', 'serif'],
+              handwriting: ['Caveat', 'cursive'],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background-color: #f4f1ea;
+        color: #1a1a1a;
+        overflow-x: hidden;
+        cursor: none;
+      }
+      * {
+        cursor: none !important;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      @keyframes handwrite {
+        from {
+          width: 0;
+        }
+        to {
+          width: 100%;
+        }
+      }
+      .handwriting-animate {
+        overflow: hidden;
+        white-space: nowrap;
+        animation: handwrite 2s steps(40, end) forwards;
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      .draw-text {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        animation: draw 4s ease-out forwards;
+      }
+      #custom-cursor {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+      }
+
+    </style>
+
+<link rel="stylesheet" href="/index.css">
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/": "https://esm.sh/react@18.3.1/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?external=react,react-dom",
+    "gsap": "https://esm.sh/gsap@3.12.5",
+    "gsap/": "https://esm.sh/gsap@3.12.5/",
+    "lucide-react": "https://esm.sh/lucide-react@0.344.0"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/jialu-sun-portfolio/assets/index-B6NhvJ2q.js"></script>
+</head>
+  <body>
+    <div id="root"></div>
+</body>
+</html>
