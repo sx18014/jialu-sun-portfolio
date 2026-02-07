@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { PROJECTS, parseText } from '../constants';
+import { PROJECTS, parseText, withBase } from '../constants';
 import { ImageCollage } from './ImageCollage';
 import { PrototypeSection } from './PrototypeSection';
 
@@ -36,7 +36,7 @@ export const ProjectPage: React.FC = () => {
       
       for (const pattern of patterns) {
         for (const ext of extensions) {
-          const path = `/projects/${id}/${pattern}.${ext}`;
+          const path = withBase(`/projects/${id}/${pattern}.${ext}`);
           try {
             if (ext === 'mp4' || ext === 'webm' || ext === 'mov') {
               const video = document.createElement('video');
@@ -79,7 +79,7 @@ export const ProjectPage: React.FC = () => {
       for (let i = 1; i <= 10; i++) {
         const num = i.toString().padStart(2, '0');
         for (const ext of allExtensions) {
-          const path = `/projects/${id}/approach/${num}.${ext}`;
+          const path = withBase(`/projects/${id}/approach/${num}.${ext}`);
           
           if (videoExtensions.includes(ext)) {
             // Check for video

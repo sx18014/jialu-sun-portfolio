@@ -1,18 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { SITE_CONTENT } from '../constants';
+import { SITE_CONTENT, withBase } from '../constants';
 
 const COLLAGE_IMAGES = [
-  '/about/Jan.png',
-  '/about/Feb.png',
-  '/about/Mar.png',
-  '/about/April.png',
-  '/about/May.png',
-  '/about/June.png',
-  '/about/July.png',
-  '/about/August.png',
-  '/about/Sep.png',
-  '/about/Oct.png'
+  withBase('/about/Jan.png'),
+  withBase('/about/Feb.png'),
+  withBase('/about/Mar.png'),
+  withBase('/about/April.png'),
+  withBase('/about/May.png'),
+  withBase('/about/June.png'),
+  withBase('/about/July.png'),
+  withBase('/about/August.png'),
+  withBase('/about/Sep.png'),
+  withBase('/about/Oct.png')
 ];
 
 const MAX_PINS = 8;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { gsap } from 'gsap';
 import Draggable from 'gsap/Draggable';
+import { withBase } from '../constants';
 
 gsap.registerPlugin(Draggable);
 
@@ -30,7 +31,7 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       for (const pattern of patterns) {
         for (const num of numbers) {
           for (const ext of extensions) {
-            possibleImages.push(`/projects/${projectId}/collage/${pattern(num, ext)}`);
+            possibleImages.push(withBase(`/projects/${projectId}/collage/${pattern(num, ext)}`));
           }
         }
       }

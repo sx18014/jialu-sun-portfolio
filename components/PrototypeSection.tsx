@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { withBase } from '../constants';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -38,7 +39,7 @@ export const PrototypeSection: React.FC<PrototypeSectionProps> = ({ projectId, p
 
       for (const num of numbers) {
         for (const ext of extensions) {
-          const path = `/projects/${projectId}/prototypes/${num}.${ext}`;
+          const path = withBase(`/projects/${projectId}/prototypes/${num}.${ext}`);
           try {
             const img = new Image();
             await new Promise((resolve, reject) => {

@@ -109,6 +109,8 @@ export const SITE_CONTENT = {
   }
 };
 
+export const withBase = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+
 export const PROJECTS: Project[] = [
   {
     id: 'elk',
@@ -119,7 +121,7 @@ export const PROJECTS: Project[] = [
     installDate: 'Oct 2025',
     coordinates: { top: '12%', left: '28%' }, // Montana - Northwest
     shortDescription: 'A four-wall immersive gesture-based experience where visitors “think like an elk” through full-body interaction, built on a custom AI tracking pipeline.',
-    image: '/images/projects/elk.jpg', // UPDATE: Replace with your image path
+    image: withBase('/images/projects/elk.jpg'), // UPDATE: Replace with your image path
     color: '#8D6E63',
     tags: ['Unreal Engine', 'TouchDesigner', 'Motion Tracking'],
     fullDescription: {
@@ -211,7 +213,7 @@ export const PROJECTS: Project[] = [
     installDate: 'Dec 2025',
     coordinates: { top: '32%', left: '73%' }, // Pittsburgh, PA - Northeast
     shortDescription: 'A webcam-powered interactive exhibit where guests “try on” five sports uniforms through motion tracking, then explore how material science enables performance and protection.',
-    image: '/images/projects/suitup.JPG', // UPDATE: Replace with your image path
+    image: withBase('/images/projects/suitup.JPG'), // UPDATE: Replace with your image path
     color: '#EF5350',
     tags: ['Unity', 'Motion Tracking'],
     fullDescription: {
@@ -237,12 +239,12 @@ export const PROJECTS: Project[] = [
         'Implemented stylized rendering **Toon Shader** to match the exhibition’s graffiti visual language.'
       ]
     },
-    stickers: ['/images/awards/suitup-award.png'],
+    stickers: [withBase('/images/awards/suitup-award.png')],
     award: {
       title: "2026 10Best Readers' Choice Award",
       category: 'Best Science Museum — ranked #3 of 10',
       url: 'https://www.anthemawards.com/winners/list/entry/#!education-art-culture/special-projects/path-of-liberty-that-which-unites-us/0/path-of-liberty/619933',
-      logo: '/images/awards/suitup-award.png'
+      logo: withBase('/images/awards/suitup-award.png')
     },
     featured: true,
     featuredOrder: 2
@@ -256,7 +258,7 @@ export const PROJECTS: Project[] = [
     installDate: 'May 2023',
     coordinates: { top: '32%', left: '73%' }, // Pittsburgh, PA - Northeast
     shortDescription: 'An award-winning VR glassblowing experience which helps teens learn hot-shop workflow in a safe, guided virtual studio.',
-    image: '/images/projects/glassblowing.jpg', // UPDATE: Replace with your image path
+    image: withBase('/images/projects/glassblowing.jpg'), // UPDATE: Replace with your image path
     color: '#FFCA28',
     tags: ['Unity', 'Mixed Reality', 'Motion Tracking'],
     fullDescription: {
@@ -324,9 +326,9 @@ export const PROJECTS: Project[] = [
       title: '2023 International Serious Play Gold Award',
       category: 'Student Entry category',
       url: 'https://www7.etc.cmu.edu/blog/etc-student-project-team-wins-gold-at-serious-play-conference/',
-      logo: '/images/awards/glassblowing-award.png'
+      logo: withBase('/images/awards/glassblowing-award.png')
     },
-    stickers: ['/images/awards/glassblowing-award.png'],
+    stickers: [withBase('/images/awards/glassblowing-award.png')],
     featured: true,
     featuredOrder: 4
   },
@@ -339,7 +341,7 @@ export const PROJECTS: Project[] = [
     installDate: 'May 2025',
     coordinates: { top: '18%', left: '75%' }, // New York - Northeast
     shortDescription: 'An award-winning, six-acre outdoor installation on Manhattan’s East Side that invites visitors to contribute their voices to a living digital tapestry celebrating the upcoming 250th anniversary of American independence.',
-    image: '/images/projects/freedomplaza.jpg', // UPDATE: Replace with your image path
+    image: withBase('/images/projects/freedomplaza.jpg'), // UPDATE: Replace with your image path
     color: '#FFCA28',
     tags: ['FFmpeg', 'Unity', 'Shaders', 'Networking'],
     fullDescription: {
@@ -355,12 +357,12 @@ export const PROJECTS: Project[] = [
       experience: '',
       connection: ''
     },
-    stickers: ['/images/awards/freedomplaza-award.png'],
+    stickers: [withBase('/images/awards/freedomplaza-award.png')],
     award: {
       title: 'Anthem Awards Bronze',
       category: 'Education, Art & Culture Special Projects Awareness Categories',
       url: 'https://www.anthemawards.com/winners/list/entry/#!education-art-culture/special-projects/path-of-liberty-that-which-unites-us/0/path-of-liberty/619933',
-      logo: '/images/awards/freedomplaza-award.png'
+      logo: withBase('/images/awards/freedomplaza-award.png')
     },
     myRole: {
       title: 'Kiosk Software Developer',
@@ -384,7 +386,7 @@ export const PROJECTS: Project[] = [
     installDate: 'Feb 2025',
     coordinates: { top: '28%', left: '20%' }, // Boise, ID - Northwest
     shortDescription: 'A three-wall, city-scale interactive installation where visitors explore energy, transportation, and water resilience by reshaping Boise’s infrastructure through playful, hands-on gameplay.',
-    image: '/images/projects/boise.jpg', // UPDATE: Replace with your image path
+    image: withBase('/images/projects/boise.jpg'), // UPDATE: Replace with your image path
     color: '#66BB6A',
     tags: ['Unity', 'Phidgets', 'Networking'],
     fullDescription: {

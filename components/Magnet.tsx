@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import Draggable from 'gsap/Draggable';
 import { useNavigate } from 'react-router-dom';
 import { Project } from '../types';
+import { withBase } from '../constants';
 
 // Register GSAP plugin
 gsap.registerPlugin(Draggable);
@@ -24,7 +25,7 @@ const getTagColor = (tag: string) => {
 
 // Get magnet PNG path based on project
 const getMagnetImage = (projectId: string): string => {
-  return `/images/magnets/${projectId}.png`;
+  return withBase(`/images/magnets/${projectId}.png`);
 };
 
 export const Magnet: React.FC<Props> = ({ project, forceHover = false, isSelected = false }) => {
