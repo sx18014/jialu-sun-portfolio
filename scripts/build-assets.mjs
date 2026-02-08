@@ -19,8 +19,8 @@ const GALLERY_WEBP_QUALITY = Number(process.env.GALLERY_WEBP_QUALITY ?? 80);
 const GALLERY_AVIF_QUALITY = Number(process.env.GALLERY_AVIF_QUALITY ?? 50);
 const GALLERY_ENABLE_AVIF = process.env.GALLERY_AVIF !== '0';
 
-const COLLAGE_MAX_HEIGHT = Number(process.env.COLLAGE_MAX_HEIGHT ?? 250);
-const COLLAGE_WEBP_QUALITY = Number(process.env.COLLAGE_WEBP_QUALITY ?? 80);
+const COLLAGE_MAX_HEIGHT = Number(process.env.COLLAGE_MAX_HEIGHT ?? 300);
+const COLLAGE_WEBP_QUALITY = Number(process.env.COLLAGE_WEBP_QUALITY ?? 92);
 
 const GALLERY_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff']);
 const COLLAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.gif', '.webp']);
@@ -52,13 +52,36 @@ const cleanOutput = async (dir, exts) => {
   }
 };
 
-const computeTargetSize = (width, height, { maxWidth, maxHeight }) => {
+const computeTargetSize = (width, height, { maxWidth, maxHeight, minHeight }) => {
   const widthScale = maxWidth ? maxWidth / width : 1;
   const heightScale = maxHeight ? maxHeight / height : 1;
   const scale = Math.min(1, widthScale, heightScale);
+  let nextWidth = Math.max(1, Math.round(width * scale));
+  let nextHeight = Math.max(1, Math.round(height * scale));
+
+  if (minHeight && nextHeight < minHeight) {
+    const upscale = minHeight / nextHeight;
+    nextWidth = Math.max(1, Math.round(nextWidth * upscale));
+    nextHeight = Math.max(1, Math.round(nextHeight * upscale));
+  }
+
+  return { width: nextWidth, height: nextHeight };
+};
+
+const readGifDimensions = async (filePath) => {
+  const buffer = await fs.readFile(filePath);
+  if (buffer.length < 10) {
+    throw new Error(`Invalid GIF file: ${filePath}`);
+  }
+
+  const signature = buffer.toString('ascii', 0, 6);
+  if (signature !== 'GIF87a' && signature !== 'GIF89a') {
+    throw new Error(`Invalid GIF signature for ${filePath}`);
+  }
+
   return {
-    width: Math.max(1, Math.round(width * scale)),
-    height: Math.max(1, Math.round(height * scale))
+    width: buffer.readUInt16LE(6),
+    height: buffer.readUInt16LE(8)
   };
 };
 
@@ -186,14 +209,23 @@ const processProjectCollages = async () => {
 
     for (const entry of selected) {
       const sourcePath = path.join(collageSrc, entry.file);
-      const metadata = await sharp(sourcePath, { animated: true }).metadata();
+      const isGif = entry.ext === '.gif';
+      const metadata = isGif
+        ? await readGifDimensions(sourcePath)
+        : await sharp(sourcePath).metadata();
+
       if (!metadata.width || !metadata.height) {
         throw new Error(`Failed to read dimensions for ${entry.file}`);
       }
 
-      const target = computeTargetSize(metadata.width, metadata.height, { maxHeight: COLLAGE_MAX_HEIGHT });
+      const target = isGif
+        ? computeTargetSize(metadata.width, metadata.height, {
+            maxHeight: COLLAGE_MAX_HEIGHT,
+            minHeight: COLLAGE_MAX_HEIGHT
+          })
+        : computeTargetSize(metadata.width, metadata.height, { maxHeight: COLLAGE_MAX_HEIGHT });
 
-      if (entry.ext === '.gif') {
+      if (isGif) {
         const destPath = path.join(collageOut, `${entry.id}.gif`);
         await fs.copyFile(sourcePath, destPath);
         items.push({

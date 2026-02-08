@@ -21,3 +21,13 @@ Personal portfolio site featuring interactive home, project pages, and an art ga
 - Optimized assets are generated into `public/gallery` and `public/projects/<projectId>/collage`
 - Run `npm run assets:build` (runs automatically on `npm run build`)
 - Add new gallery entries in `galleryData.ts` with matching `id`s
+
+### Quality & Size Settings
+Edit `scripts/build-assets.mjs` (or set env vars) to tune output:
+- `GALLERY_WEBP_QUALITY` (default `80`)
+- `GALLERY_MAX_WIDTH` (default `2000`)
+- `GALLERY_AVIF_QUALITY` + `GALLERY_AVIF` (optional AVIF)
+- `COLLAGE_WEBP_QUALITY` (default `92`)
+- `COLLAGE_MAX_HEIGHT` (default `300`)
+
+GIFs are copied as-is (not re-encoded). To improve GIF quality, replace the source files in `public/projects/<projectId>/collage-src`.

@@ -13,6 +13,9 @@ interface ImageCollageProps {
 export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const collageRef = useRef<HTMLDivElement>(null);
+  const rowGap = 40;
+  const topMargin = 40;
+  const minContainerHeight = 700;
   const baseImages = useMemo(() => {
     const images = PROJECT_COLLAGE_MANIFEST[projectId] ?? [];
     return images.slice(0, 20).map((item) => ({
@@ -30,9 +33,10 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
     
     // Calculate max height for proper row separation
     const maxImageHeight = Math.max(...collageImages.map(img => img.height));
-    const containerHeight = 640; // 80vh ≈ 640px
-    const rowGap = 40;
-    const topMargin = 40;
+    const containerHeight = Math.max(
+      minContainerHeight,
+      Math.round(maxImageHeight * 2 + rowGap + topMargin * 2)
+    );
     
     // Ensure rows don't overlap by calculating safe positions
     const row1Y = topMargin;
@@ -92,7 +96,16 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       }
     }
     return items;
-  }, [baseImages]);
+  }, [baseImages, minContainerHeight, rowGap, topMargin]);
+
+  const containerHeight = useMemo(() => {
+    if (baseImages.length === 0) return minContainerHeight;
+    const maxImageHeight = Math.max(...baseImages.map((img) => img.height));
+    return Math.max(
+      minContainerHeight,
+      Math.round(maxImageHeight * 2 + rowGap + topMargin * 2)
+    );
+  }, [baseImages, minContainerHeight, rowGap, topMargin]);
 
   useLayoutEffect(() => {
     if (!collageRef.current || !containerRef.current) return;
@@ -199,11 +212,18 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
   }, [collageItems, baseImages]);
 
   return (
-    <div className="w-full h-[600px] mb-20 relative overflow-hidden bg-gray-50" ref={containerRef}>
+    <div
+      className="w-full mb-20 relative overflow-hidden bg-gray-50"
+      style={{ height: `${containerHeight}px` }}
+      ref={containerRef}
+    >
       <div 
         ref={collageRef}
         className="absolute w-max h-max"
-        style={{ width: `${Math.max(2000, collageItems.length > 0 ? Math.max(...collageItems.map(item => item.x + item.width)) : 2000)}px`, height: '600px' }}
+        style={{
+          width: `${Math.max(2000, collageItems.length > 0 ? Math.max(...collageItems.map(item => item.x + item.width)) : 2000)}px`,
+          height: `${containerHeight}px`
+        }}
       >
         {collageItems.map((item) => (
           <div

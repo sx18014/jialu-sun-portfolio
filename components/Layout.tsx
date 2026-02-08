@@ -51,16 +51,20 @@ export const Layout: React.FC<Props> = ({ children }) => {
     };
   }, [location]);
 
-  const isHomePage = location.pathname === '/' || location.pathname.startsWith('/work/');
+  const isHomePage = location.pathname === '/';
+  const isProjectPage = location.pathname.startsWith('/work/') || location.pathname.startsWith('/project/');
   const bgColor = isScrolled
     ? 'bg-white shadow-xl border-b-4 border-[#2D2D2D]'
-    : 'bg-transparent';
+    : 'bg-transparent border-b-4 border-transparent';
 
   const navItems = [
     { path: '/work', label: 'WORK' },
     { path: '/gallery', label: 'GALLERY' },
     { path: '/about', label: 'ABOUT' },
   ];
+  const logoTone = isProjectPage && !isScrolled
+    ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.55)]'
+    : 'text-[#1f1f1f]';
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-gray-200 selection:text-gray-900 bg-white">
@@ -75,11 +79,11 @@ export const Layout: React.FC<Props> = ({ children }) => {
           </svg>
         </div>
       )}
-      <nav className={`fixed top-0 left-0 right-0 z-[1000] px-6 md:px-10 py-4 flex justify-between items-center pointer-events-auto transition-all duration-300 ${bgColor}`} style={{ cursor: 'auto' }}>
+      <nav className={`fixed top-0 left-0 right-0 z-[1000] px-6 md:px-10 py-4 flex justify-between items-center pointer-events-auto transition-[background-color,box-shadow,border-color] duration-300 ${bgColor}`} style={{ cursor: 'auto' }}>
         <div className="pointer-events-auto">
           <NavLink
             to="/"
-            className="text-3xl font-black tracking-tight text-[#1f1f1f] hover:scale-110 transition-transform relative z-[1001]"
+            className={`text-3xl font-black tracking-tight hover:scale-110 transition-transform relative z-[1001] ${logoTone}`}
             onClick={() => setIsMenuOpen(false)}
           >
             JIALU
