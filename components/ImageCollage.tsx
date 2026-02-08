@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
+import React, { useLayoutEffect, useRef, useMemo } from 'react';
 import { gsap } from 'gsap';
 import Draggable from 'gsap/Draggable';
 import { withBase } from '../constants';
+import { PROJECT_COLLAGE_MANIFEST } from '../generated/projectCollageManifest';
 
 gsap.registerPlugin(Draggable);
 
@@ -12,69 +13,23 @@ interface ImageCollageProps {
 export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const collageRef = useRef<HTMLDivElement>(null);
-  const [images, setImages] = useState<{src: string, width: number, height: number}[]>([]);
-
-  useEffect(() => {
-    const loadProjectImages = async () => {
-      const possibleImages = [];
-      const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      const numbers = Array.from({length: 20}, (_, i) => String(i + 1).padStart(2, '0'));
-      
-      // Try different naming patterns
-      const patterns = [
-        (num: string, ext: string) => `${num}.${ext}`,
-        (num: string, ext: string) => `image${num}.${ext}`,
-        (num: string, ext: string) => `img${num}.${ext}`,
-        (num: string, ext: string) => `${projectId}${num}.${ext}`,
-      ];
-      
-      for (const pattern of patterns) {
-        for (const num of numbers) {
-          for (const ext of extensions) {
-            possibleImages.push(withBase(`/projects/${projectId}/collage/${pattern(num, ext)}`));
-          }
-        }
-      }
-      
-      // Test which images actually exist and get their dimensions
-      const existingImages = [];
-      for (const imagePath of possibleImages) {
-        try {
-          const img = new Image();
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = imagePath;
-          });
-          // Scale down large images while keeping aspect ratio
-          const maxHeight = 250;
-          const scale = img.height > maxHeight ? maxHeight / img.height : 1;
-          existingImages.push({
-            src: imagePath,
-            width: img.width * scale,
-            height: img.height * scale
-          });
-          if (existingImages.length >= 20) break; // Limit to 20 images
-        } catch {
-          // Image doesn't exist, continue
-        }
-      }
-      
-      setImages(existingImages);
-    };
-    
-    loadProjectImages();
+  const baseImages = useMemo(() => {
+    const images = PROJECT_COLLAGE_MANIFEST[projectId] ?? [];
+    return images.slice(0, 20).map((item) => ({
+      ...item,
+      src: withBase(item.src)
+    }));
   }, [projectId]);
 
   // Create infinite collage items with original dimensions in 2 non-overlapping rows
   const collageItems = useMemo(() => {
     const items = [];
-    const baseImages = images.length > 0 ? images : [];
+    const collageImages = baseImages.length > 0 ? baseImages : [];
     
-    if (baseImages.length === 0) return items;
+    if (collageImages.length === 0) return items;
     
     // Calculate max height for proper row separation
-    const maxImageHeight = Math.max(...baseImages.map(img => img.height));
+    const maxImageHeight = Math.max(...collageImages.map(img => img.height));
     const containerHeight = 640; // 80vh ≈ 640px
     const rowGap = 40;
     const topMargin = 40;
@@ -90,8 +45,8 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
     let totalRow1Width = 0;
     let totalRow2Width = 0;
     
-    for (let i = 0; i < baseImages.length; i++) {
-      const imageData = baseImages[i];
+    for (let i = 0; i < collageImages.length; i++) {
+      const imageData = collageImages[i];
       if (i % 2 === 0) {
         totalRow1Width += imageData.width + 40;
       } else {
@@ -107,8 +62,8 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       let row2X = strip * stripWidth;
       
       // Split images between two rows
-      for (let i = 0; i < baseImages.length; i++) {
-        const imageData = baseImages[i];
+      for (let i = 0; i < collageImages.length; i++) {
+        const imageData = collageImages[i];
         const isRow1 = i % 2 === 0;
         
         if (isRow1) {
@@ -137,10 +92,11 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       }
     }
     return items;
-  }, [images]);
+  }, [baseImages]);
 
   useLayoutEffect(() => {
     if (!collageRef.current || !containerRef.current) return;
+    if (baseImages.length === 0) return;
     
     const ctx = gsap.context(() => {
       const collage = collageRef.current!;
@@ -149,8 +105,8 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       let totalRow1Width = 0;
       let totalRow2Width = 0;
       
-      for (let i = 0; i < images.length; i++) {
-        const imageData = images[i];
+      for (let i = 0; i < baseImages.length; i++) {
+        const imageData = baseImages[i];
         if (i % 2 === 0) {
           totalRow1Width += imageData.width + 40;
         } else {
@@ -240,7 +196,7 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [collageItems]);
+  }, [collageItems, baseImages]);
 
   return (
     <div className="w-full h-[600px] mb-20 relative overflow-hidden bg-gray-50" ref={containerRef}>

@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "gallery:build": "node scripts/build-gallery.mjs",
-    "predev": "npm run gallery:build",
-    "prebuild": "npm run gallery:build",
+    "assets:build": "node scripts/build-assets.mjs",
+    "gallery:build": "npm run assets:build",
+    "prebuild": "npm run assets:build",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"

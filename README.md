@@ -15,8 +15,9 @@ Personal portfolio site featuring interactive home, project pages, and an art ga
 1. `npm run build`
 2. `npm run preview`
 
-## Gallery Images
-- Source originals live in `public/gallery-src`
-- Optimized assets are generated into `public/gallery`
-- Run `npm run gallery:build` (also runs automatically on `npm run dev` and `npm run build`)
-- Add new entries in `galleryData.ts` with matching `id`s
+## Image Pipeline
+- Gallery originals live in `public/gallery-src`
+- Project collage originals live in `public/projects/<projectId>/collage-src`
+- Optimized assets are generated into `public/gallery` and `public/projects/<projectId>/collage`
+- Run `npm run assets:build` (runs automatically on `npm run build`)
+- Add new gallery entries in `galleryData.ts` with matching `id`s
