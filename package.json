@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "gallery:build": "node scripts/build-gallery.mjs",
+    "predev": "npm run gallery:build",
+    "prebuild": "npm run gallery:build",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -21,6 +24,7 @@
     "@types/node": "^22.14.0",
     "@types/three": "^0.160.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "sharp": "^0.33.5",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

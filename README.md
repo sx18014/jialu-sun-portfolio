@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Jialu Portfolio — Creative Technologist
 
-# Run and deploy your AI Studio app
+Personal portfolio site featuring interactive home, project pages, and an art gallery.
 
-This contains everything you need to run your app locally.
+## Tech
+- React 18 + TypeScript + Vite
+- React Router (hash routing)
+- GSAP, ECharts, Lucide
 
-View your app in AI Studio: https://ai.studio/apps/drive/1_fqwz4tL5mXlCPWJDxUjY82flpULOthN
+## Development
+1. `npm install`
+2. `npm run dev`
 
-## Run Locally
+## Build
+1. `npm run build`
+2. `npm run preview`
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Gallery Images
+- Source originals live in `public/gallery-src`
+- Optimized assets are generated into `public/gallery`
+- Run `npm run gallery:build` (also runs automatically on `npm run dev` and `npm run build`)
+- Add new entries in `galleryData.ts` with matching `id`s

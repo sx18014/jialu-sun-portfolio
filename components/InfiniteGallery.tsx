@@ -1,9 +1,7 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { GALLERY_ITEMS } from '../galleryData';
 
 export const InfiniteGallery: React.FC = () => {
-  const [artworks, setArtworks] = useState<{id: string, title: string, description: string, image: string, width: number, height: number}[]>([]);
-
   const [bubble, setBubble] = useState<{ visible: boolean; x: number; y: number; text: string }>({
     visible: false,
     x: 0,
@@ -11,48 +9,15 @@ export const InfiniteGallery: React.FC = () => {
     text: ''
   });
 
-  useEffect(() => {
-    const loadGalleryImages = async () => {
-      const shuffled = [...GALLERY_ITEMS].sort(() => Math.random() - 0.5);
-      const existingArtworks = [];
-      for (const item of shuffled) {
-        try {
-          const img = new Image();
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = item.image;
-          });
-          
-          existingArtworks.push({
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            image: item.image,
-            width: img.width,
-            height: img.height
-          });
-        } catch {
-          // Image doesn't exist, continue
-        }
-      }
-      
-      setArtworks(existingArtworks);
-    };
-    
-    loadGalleryImages();
-  }, []);
-
   // Single-pass collage layout
   const displayArtworks = useMemo(() => {
-    if (artworks.length === 0) return [];
     const sizes = ['small', 'medium', 'large', 'xlarge'];
-    return artworks.map((artwork, index) => ({
+    const shuffled = [...GALLERY_ITEMS].sort(() => Math.random() - 0.5);
+    return shuffled.map((artwork, index) => ({
       ...artwork,
-      id: `${artwork.id}-${index}`,
       collageSize: sizes[index % sizes.length]
     }));
-  }, [artworks]);
+  }, []);
 
 
 
@@ -108,13 +73,22 @@ export const InfiniteGallery: React.FC = () => {
               }
             >
               <div className="relative bg-white border-2 border-black shadow-[6px_6px_0_rgba(0,0,0,0.35)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[8px_8px_0_rgba(0,0,0,0.35)]">
-                <img 
-                  src={artwork.image} 
-                  alt={artwork.title} 
-                  className="w-full h-auto object-cover"
-                  style={{ aspectRatio: `${artwork.width} / ${artwork.height}` }}
-                  loading="lazy"
-                />
+                <picture>
+                  {artwork.imageAvif ? (
+                    <source srcSet={artwork.imageAvif} type="image/avif" />
+                  ) : null}
+                  <source srcSet={artwork.imageWebp} type="image/webp" />
+                  <img 
+                    src={artwork.imageWebp} 
+                    alt={artwork.title} 
+                    className="w-full h-auto object-cover"
+                    style={{ aspectRatio: `${artwork.width} / ${artwork.height}` }}
+                    width={artwork.width}
+                    height={artwork.height}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
 
                 {/* Sticky tape pinned top-right */}
                 <div className="absolute -top-3 -right-4 rotate-2">
