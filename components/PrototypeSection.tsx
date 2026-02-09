@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { withBase } from '../constants';
+import { PROTOTYPE_MANIFEST } from '../generated/prototypeManifest';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,44 +29,13 @@ const STICKY_COLORS = {
 };
 
 export const PrototypeSection: React.FC<PrototypeSectionProps> = ({ projectId, prototypeData }) => {
-  const [prototypes, setPrototypes] = useState<PrototypeNote[]>([]);
-
-  useEffect(() => {
-    const loadPrototypeImages = async () => {
-      const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      const numbers = Array.from({length: 20}, (_, i) => String(i + 1).padStart(2, '0'));
-      const notes: PrototypeNote[] = [];
-      const colors: Array<'yellow' | 'pink' | 'blue' | 'mint'> = ['yellow', 'pink', 'blue', 'mint'];
-
-      for (const num of numbers) {
-        for (const ext of extensions) {
-          const path = withBase(`/projects/${projectId}/prototypes/${num}.${ext}`);
-          try {
-            const img = new Image();
-            await new Promise((resolve, reject) => {
-              img.onload = resolve;
-              img.onerror = reject;
-              img.src = path;
-            });
-            const index = notes.length;
-            notes.push({
-              image: path,
-              caption: prototypeData?.captions?.[index] || `Prototype ${num}`,
-              notes: prototypeData?.annotations?.[index],
-              color: colors[index % colors.length],
-            });
-            break;
-          } catch {
-            continue;
-          }
-        }
-      }
-      
-      setPrototypes(notes);
-    };
-
-    loadPrototypeImages();
-  }, [projectId]);
+  const colors: Array<'yellow' | 'pink' | 'blue' | 'mint'> = ['yellow', 'pink', 'blue', 'mint'];
+  const prototypes: PrototypeNote[] = (PROTOTYPE_MANIFEST[projectId] ?? []).map((item, index) => ({
+    image: withBase(item.src),
+    caption: prototypeData?.captions?.[index] || `Prototype ${item.id}`,
+    notes: prototypeData?.annotations?.[index],
+    color: colors[index % colors.length],
+  }));
 
   if (prototypes.length === 0) return null;
 
@@ -219,6 +189,8 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
             src={image} 
             alt={caption}
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         

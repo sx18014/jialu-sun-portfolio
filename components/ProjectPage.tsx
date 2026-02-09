@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { PROJECTS, parseText, withBase } from '../constants';
 import { ImageCollage } from './ImageCollage';
 import { PrototypeSection } from './PrototypeSection';
+import { APPROACH_MANIFEST } from '../generated/approachManifest';
 
 // Helper to detect if hero media is video or image
 const getHeroMediaType = (path: string): 'video' | 'image' => {
@@ -65,64 +66,7 @@ export const ProjectPage: React.FC = () => {
     checkHeroMedia();
   }, [id]);
 
-  // Auto-detect approach images and videos
-  const [approachMedia, setApproachMedia] = useState<Array<{path: string, type: 'video' | 'image'}>>([]);
-  useEffect(() => {
-    if (!id) return;
-    
-    const checkApproachMedia = async () => {
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-      const videoExtensions = ['mp4', 'webm', 'mov'];
-      const allExtensions = [...videoExtensions, ...imageExtensions];
-      const media: Array<{path: string, type: 'video' | 'image'}> = [];
-      
-      for (let i = 1; i <= 10; i++) {
-        const num = i.toString().padStart(2, '0');
-        for (const ext of allExtensions) {
-          const path = withBase(`/projects/${id}/approach/${num}.${ext}`);
-          
-          if (videoExtensions.includes(ext)) {
-            // Check for video
-            const video = document.createElement('video');
-            await new Promise((resolve) => {
-              const timeout = setTimeout(() => resolve(false), 1000);
-              video.onloadedmetadata = () => {
-                clearTimeout(timeout);
-                media.push({path, type: 'video'});
-                resolve(true);
-              };
-              video.onerror = () => {
-                clearTimeout(timeout);
-                resolve(false);
-              };
-              video.src = path;
-            });
-          } else {
-            // Check for image
-            const img = new Image();
-            await new Promise((resolve) => {
-              const timeout = setTimeout(() => resolve(false), 1000);
-              img.onload = () => {
-                clearTimeout(timeout);
-                media.push({path, type: 'image'});
-                resolve(true);
-              };
-              img.onerror = () => {
-                clearTimeout(timeout);
-                resolve(false);
-              };
-              img.src = path;
-            });
-          }
-          
-          if (media.length > i - 1) break;
-        }
-      }
-      setApproachMedia(media);
-    };
-    
-    checkApproachMedia();
-  }, [id]);
+  const approachMedia = id ? (APPROACH_MANIFEST[id] ?? []) : [];
 
   if (!project) {
     return (
@@ -346,18 +290,21 @@ export const ProjectPage: React.FC = () => {
                     >
                       {media.type === 'video' ? (
                         <video 
-                          src={media.path} 
+                          src={withBase(media.src)} 
                           className="w-full h-auto object-cover" 
                           autoPlay 
                           loop 
                           muted 
                           playsInline 
+                          preload="metadata"
                         />
                       ) : (
                         <img 
-                          src={media.path} 
+                          src={withBase(media.src)} 
                           alt="" 
                           className="w-full h-auto object-cover" 
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                     </div>

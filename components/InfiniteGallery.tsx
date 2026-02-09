@@ -32,12 +32,12 @@ export const InfiniteGallery: React.FC = () => {
     >
       
       {/* Header */}
-      <div className="mb-12 text-center">
+      <div className="mb-12 text-left max-w-6xl mx-auto">
         <h1 className="text-4xl md:text-6xl font-semibold text-gray-900 mb-5 tracking-tight">Art Gallery</h1>
-        <p className="text-gray-600 text-base md:text-lg max-w-2xl font-normal leading-relaxed mx-auto">
-          These drawings are pieces of my heart: traces of places I've traveled, animals I've admired, and small moments that made me feel something.
+        <p className="text-gray-600 text-base md:text-lg max-w-2xl font-normal leading-relaxed">
+        When I’m not working, I draw.
+        It’s how I archive feeling - small memories from travel, nature, and the people I love. Mocha, my orange cat, is a frequent guest star.
           <br />
-          <span className="italic">Mocha, my orange cat, lives in many of them. He insists on being the star.</span>
         </p>
       </div>
 

@@ -8,6 +8,7 @@ import { ThreeUSMap, ThreeUSMapRef } from './ThreeUSMap';
 const LOCATION_TO_STATE: Record<string, string> = {
   'Missoula, MT': 'Montana',
   'Pittsburgh, PA': 'Pennsylvania',
+  'Pittsburgh, MA': 'Pennsylvania',
   'Redwood City, CA': 'California',
   'New York, NY': 'New York',
   'Boise, ID': 'Idaho'
@@ -40,6 +41,7 @@ export const FridgeMap: React.FC<FridgeMapProps> = ({
   const selectedProject = selectedProjectId !== undefined ? selectedProjectId : selectedProjectInternal;
   const focusedProject = focusedProjectId ? PROJECTS.find((p) => p.id === focusedProjectId) : null;
   const focusedState = focusedProject ? LOCATION_TO_STATE[focusedProject.location] : null;
+  const highlightedDotId = focusedProjectId ?? selectedProject ?? autoHoveredProject ?? null;
 
   useEffect(() => {
     // Smooth fade-in animation
@@ -182,7 +184,7 @@ export const FridgeMap: React.FC<FridgeMapProps> = ({
     >
         {/* Map Container */}
         <div 
-          className="relative w-full aspect-[4/3] bg-[#f8f6f1] overflow-visible border-2 border-black/10"
+          className={`relative w-full aspect-[4/3] bg-[#f8f6f1] overflow-visible border-2 border-black/10 ${interactive ? '' : 'pointer-events-none'}`}
           style={mapTiltStyle}
           onMouseMove={(e) => {
             handleUserInteraction();
@@ -196,8 +198,33 @@ export const FridgeMap: React.FC<FridgeMapProps> = ({
               ref={mapRef}
               className="absolute inset-0 w-full h-full"
             >
-              <ThreeUSMap ref={chartRef} highlightedState={focusedState ?? hoveredState} selectedProject={selectedProject} />
+              <ThreeUSMap
+                ref={chartRef}
+                highlightedState={focusedState ?? hoveredState}
+                selectedProject={selectedProject}
+              />
             </div>
+
+            {!interactive && (
+              <div className="absolute inset-0 w-full h-full z-[12] pointer-events-none">
+                {PROJECTS.map((project) => {
+                  const isActive = highlightedDotId === project.id;
+                  return (
+                    <span
+                      key={project.id}
+                      className={`absolute rounded-full ${isActive ? 'bg-[#1f1f1f]' : 'bg-[#FF9ECD]'}`}
+                      style={{
+                        top: project.coordinates.top,
+                        left: project.coordinates.left,
+                        width: isActive ? '10px' : '8px',
+                        height: isActive ? '10px' : '8px',
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
 
             {/* Magnets Layer */}
             {interactive && (

@@ -119,7 +119,7 @@ export const PROJECTS: Project[] = [
     venue: 'Rocky Mountain Elk Foundation Visitor Center',
     venueUrl: 'https://www.rmef.org/contact/visitor-center/',
     installDate: 'Oct 2025',
-    coordinates: { top: '12%', left: '28%' }, // Montana - Northwest
+    coordinates: { top: '18%', left: '30%' }, // Montana - Northwest
     shortDescription: 'A four-wall immersive gesture-based experience where visitors “think like an elk” through full-body interaction, built on a custom AI tracking pipeline.',
     image: withBase('/images/projects/elk.jpg'), // UPDATE: Replace with your image path
     color: '#8D6E63',
@@ -211,7 +211,7 @@ export const PROJECTS: Project[] = [
     venue: 'Kamin Science Center',
     venueUrl: 'https://kaminsciencecenter.org/exhibits/sports360/',
     installDate: 'Dec 2025',
-    coordinates: { top: '32%', left: '73%' }, // Pittsburgh, PA - Northeast
+    coordinates: { top: '33%', left: '73%' }, // Pittsburgh, PA - Northeast
     shortDescription: 'A webcam-powered interactive exhibit where guests “try on” five sports uniforms through motion tracking, then explore how material science enables performance and protection.',
     image: withBase('/images/projects/suitup.JPG'), // UPDATE: Replace with your image path
     color: '#EF5350',
@@ -256,7 +256,7 @@ export const PROJECTS: Project[] = [
     venue: 'Pittsburgh Glass Center',
     venueUrl: 'https://www.pittsburghglasscenter.org/articles/virtual-glassblowing-is-real-at-pittsburgh-glass-center/',
     installDate: 'May 2023',
-    coordinates: { top: '32%', left: '73%' }, // Pittsburgh, PA - Northeast
+    coordinates: { top: '36%', left: '73%' }, // Pittsburgh, PA - Northeast
     shortDescription: 'An award-winning VR glassblowing experience which helps teens learn hot-shop workflow in a safe, guided virtual studio.',
     image: withBase('/images/projects/glassblowing.jpg'), // UPDATE: Replace with your image path
     color: '#FFCA28',
@@ -339,7 +339,7 @@ export const PROJECTS: Project[] = [
     venue: 'Freedom Plaza',
     venueUrl: 'https://pathoflibertynyc.com/',
     installDate: 'May 2025',
-    coordinates: { top: '18%', left: '75%' }, // New York - Northeast
+    coordinates: { top: '30%', left: '80%' }, // New York - Northeast
     shortDescription: 'An award-winning, six-acre outdoor installation on Manhattan’s East Side that invites visitors to contribute their voices to a living digital tapestry celebrating the upcoming 250th anniversary of American independence.',
     image: withBase('/images/projects/freedomplaza.jpg'), // UPDATE: Replace with your image path
     color: '#FFCA28',
@@ -384,7 +384,7 @@ export const PROJECTS: Project[] = [
     venue: 'The WaterShed Education Center',
     venueUrl: 'https://www.boisewatershed.org/visit/exhibits/',
     installDate: 'Feb 2025',
-    coordinates: { top: '28%', left: '20%' }, // Boise, ID - Northwest
+    coordinates: { top: '28%', left: '25%' }, // Boise, ID - Northwest
     shortDescription: 'A three-wall, city-scale interactive installation where visitors explore energy, transportation, and water resilience by reshaping Boise’s infrastructure through playful, hands-on gameplay.',
     image: withBase('/images/projects/boise.jpg'), // UPDATE: Replace with your image path
     color: '#66BB6A',

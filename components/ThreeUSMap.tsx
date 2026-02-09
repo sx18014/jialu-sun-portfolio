@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import * as echarts from 'echarts';
 import { PROJECTS } from '../constants';
+import { USMapSVG } from './USMapSVG';
 
 // Map project locations to US state names
 const LOCATION_TO_STATE: Record<string, string> = {
   'Missoula, MT': 'Montana',
   'Pittsburgh, PA': 'Pennsylvania',
+  'Pittsburgh, MA': 'Pennsylvania',
   'Redwood City, CA': 'California',
   'New York, NY': 'New York',
   'Boise, ID': 'Idaho'
@@ -39,74 +41,104 @@ export const ThreeUSMap = forwardRef<ThreeUSMapRef, ThreeUSMapProps>(({ highligh
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstanceRef = useRef<echarts.ECharts | null>(null);
   const mapReadyRef = useRef(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
 
   useEffect(() => {
     if (!chartRef.current) return;
 
-    const chart = echarts.init(chartRef.current);
-    chartInstanceRef.current = chart;
+    let rafId: number | null = null;
     let resizeObserver: ResizeObserver | null = null;
-
-    if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
-      resizeObserver = new ResizeObserver(() => {
-        chart.resize();
-      });
-      resizeObserver.observe(chartRef.current);
-    }
-
-    // Register USA map with accurate GeoJSON data
-    fetch('https://code.highcharts.com/mapdata/countries/us/us-all.geo.json')
-      .then(response => response.json())
-      .then(usaJson => {
-        echarts.registerMap('USA', usaJson);
-
-        const option: echarts.EChartsOption = {
-          geo: {
-            map: 'USA',
-            roam: false,
-            aspectScale: 0.75,
-            layoutCenter: ['50%', '50%'],
-            layoutSize: '100%',
-            label: { show: false },
-            itemStyle: {
-              areaColor: '#f8f6f1',
-              borderColor: '#1f1f1f',
-              borderWidth: 1.5
-            },
-            emphasis: {
-              // Removed invalid 'focus' property
-              label: { show: false },
-              itemStyle: {
-                areaColor: 'rgba(255, 217, 61, 0.35)',
-                borderColor: '#1f1f1f',
-                borderWidth: 2
-              }
-            }
-          },
-          series: [],
-          animation: true,
-          animationDuration: 600,
-          animationEasing: 'linear'
-        };
-
-        chart.setOption(option as any);
-        mapReadyRef.current = true;
-        requestAnimationFrame(() => chart.resize());
-      })
-      .catch(error => {
-        console.error('Failed to load US map data:', error);
-      });
+    let chart: echarts.ECharts | null = null;
+    let cancelled = false;
 
     const handleResize = () => {
-      chart.resize();
+      chart?.resize();
     };
 
-    window.addEventListener('resize', handleResize);
+    const initWhenReady = () => {
+      if (!chartRef.current || cancelled) return;
+      if (chartRef.current.clientWidth === 0 || chartRef.current.clientHeight === 0) {
+        rafId = requestAnimationFrame(initWhenReady);
+        return;
+      }
+
+      chart = echarts.init(chartRef.current);
+      chartInstanceRef.current = chart;
+
+      if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
+        resizeObserver = new ResizeObserver(() => {
+          chart?.resize();
+        });
+        resizeObserver.observe(chartRef.current);
+      }
+
+      fetch('/maps/usa.json')
+        .then(response => response.json())
+        .then(usaJson => {
+          if (!usaJson || !usaJson.features || !Array.isArray(usaJson.features)) {
+            throw new Error('Invalid GeoJSON');
+          }
+          let mapLoaded = false;
+          try {
+            echarts.registerMap('USA', usaJson as any);
+            const option: echarts.EChartsOption = {
+              geo: {
+                map: 'USA',
+                roam: false,
+                aspectScale: 0.75,
+                layoutCenter: ['50%', '50%'],
+                layoutSize: '100%',
+                label: { show: false },
+                itemStyle: {
+                  areaColor: '#f8f6f1',
+                  borderColor: '#1f1f1f',
+                  borderWidth: 1.5
+                },
+              emphasis: {
+                label: { show: false },
+                itemStyle: {
+                  areaColor: '#FF9ECD',
+                  borderColor: '#1f1f1f',
+                  borderWidth: 2
+                }
+              }
+              },
+              series: [],
+              animation: true,
+              animationDuration: 600,
+              animationEasing: 'linear'
+            };
+
+            chart?.setOption(option as any);
+            mapLoaded = true;
+          } catch (error) {
+            console.error('Failed to initialize map:', error);
+            setMapFailed(true);
+          }
+
+          if (mapLoaded) {
+            mapReadyRef.current = true;
+            setIsMapReady(true);
+            requestAnimationFrame(() => chart?.resize());
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load US map data:', error);
+          setMapFailed(true);
+        });
+
+      window.addEventListener('resize', handleResize);
+    };
+
+    initWhenReady();
 
     return () => {
+      cancelled = true;
+      if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('resize', handleResize);
       resizeObserver?.disconnect();
-      chart.dispose();
+      chart?.dispose();
       chartInstanceRef.current = null;
     };
   }, []);
@@ -192,9 +224,7 @@ export const ThreeUSMap = forwardRef<ThreeUSMapRef, ThreeUSMapProps>(({ highligh
             symbol: 'circle',
             symbolSize: 12,
             itemStyle: {
-              color: '#FFD93D',
-              shadowBlur: 20,
-              shadowColor: 'rgba(255, 217, 61, 0.65)'
+              color: '#FF9ECD'
             },
             data: [
               {
@@ -206,31 +236,35 @@ export const ThreeUSMap = forwardRef<ThreeUSMapRef, ThreeUSMapProps>(({ highligh
         ]
       : [];
 
-    chartInstanceRef.current.setOption(
-      {
-        geo: {
-          itemStyle: {
-            areaColor: activeState ? 'rgba(248, 246, 241, 0.55)' : '#f8f6f1'
-          },
-          regions: activeState
-            ? [
-                {
-                  name: activeState,
-                  itemStyle: {
-                    areaColor: 'rgba(255, 217, 61, 0.35)',
-                    borderColor: '#1f1f1f',
-                    borderWidth: 2,
-                    shadowBlur: 18,
-                    shadowColor: 'rgba(255, 217, 61, 0.4)'
+    try {
+      chartInstanceRef.current.setOption(
+        {
+          geo: {
+            itemStyle: {
+              areaColor: activeState ? 'rgba(248, 246, 241, 0.9)' : '#f8f6f1'
+            },
+            regions: activeState
+              ? [
+                  {
+                    name: activeState,
+                    itemStyle: {
+                      areaColor: '#FF9ECD',
+                      borderColor: '#1f1f1f',
+                      borderWidth: 2,
+                      shadowBlur: 0
+                    }
                   }
-                }
-              ]
-            : []
+                ]
+              : []
+          },
+          series: [...haloSeries]
         },
-        series: haloSeries
-      },
-      false
-    );
+        false
+      );
+    } catch (error) {
+      console.error('Failed to update map:', error);
+      setMapFailed(true);
+    }
 
     if (activeState) {
       chartInstanceRef.current.dispatchAction({
@@ -244,9 +278,16 @@ export const ThreeUSMap = forwardRef<ThreeUSMapRef, ThreeUSMapProps>(({ highligh
         geoIndex: 0
       });
     }
-  }, [highlightedState, selectedProject]);
+  }, [highlightedState, selectedProject, isMapReady]);
 
-  return <div ref={chartRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full">
+      <div ref={chartRef} className="absolute inset-0 w-full h-full" />
+      {!isMapReady && mapFailed && (
+        <USMapSVG className="w-full h-full" />
+      )}
+    </div>
+  );
 });
 
 ThreeUSMap.displayName = 'ThreeUSMap';
