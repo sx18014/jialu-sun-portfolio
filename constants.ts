@@ -226,7 +226,38 @@ export const PROJECTS: Project[] = [
         \n
         The experience balances quick, playful costume switching with optional deeper reading via hotspots and locker-based exhibit content.
         `),
-      approach: 'Unity + MediaPipe; replaced Kinect; designed body-tracking and hotspot system.',
+      approach: txt(`Suit Up is built for **instant onboarding**: 
+        visitors step into frame, see a responsive avatar immediately, 
+        then select different uniforms and gears to explore safety and performance knowledge.
+
+        \n
+        In the R&D Phase, I evaluated several tracking solutions to balance 
+        reliability, cost, and ease of maintenance in a museum setting.
+        [MediaPipe](https://developers.google.com/mediapipe) stands out after testing **RealSense Kinect**, **Snapchat Lens Studio**, and **OpenCV** in Unity.
+
+        \n
+        **Implementation**
+
+        [MediaPipe](https://developers.google.com/mediapipe)
+        provides robust pose and hand tracking from a single webcam feed.
+        Pose landmarks are mapped onto a humanoid rig in Unity to puppeteer the on-screen avatar, 
+        with a calibrated Y-offset to better match vertical motion like jump or squat.
+
+        \n
+        Hotspot interactions “zoom in” on key areas includes camera movement and 
+        reveal hidden layers through targeted material swaps and highlight states, 
+        such as **Shoulder Pads** for Football Player.
+
+        \n
+        A final **strike a pose** capture moment reinforces participation
+         and creates a social, playful finish suitable for the attract loop.
+
+        \n
+        **Installation**
+
+        The system was optimized for museum use, with a focus on reliability and minimal maintenance requirements.
+        I also developed calibration tools for flexible onsite camera tweakment to supported the installation process.
+        The system was tested with real visitors to fine-tune the interaction and ensure a smooth experience.`),
       experience: '',
       connection: ''
     },

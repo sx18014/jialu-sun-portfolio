@@ -1,8 +1,8 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { withBase } from '../constants';
-import { PROTOTYPE_MANIFEST } from '../generated/prototypeManifest';
+import { PROTOTYPE_MANIFEST, type PrototypeMediaItem } from '../generated/prototypeManifest';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -30,7 +30,44 @@ const STICKY_COLORS = {
 
 export const PrototypeSection: React.FC<PrototypeSectionProps> = ({ projectId, prototypeData }) => {
   const colors: Array<'yellow' | 'pink' | 'blue' | 'mint'> = ['yellow', 'pink', 'blue', 'mint'];
-  const prototypes: PrototypeNote[] = (PROTOTYPE_MANIFEST[projectId] ?? []).map((item, index) => ({
+  const [devPrototypeManifest, setDevPrototypeManifest] = useState<Record<string, PrototypeMediaItem[]> | null>(null);
+  const devPrototypeSnapshotRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    let isActive = true;
+
+    const loadDevPrototypeManifest = async () => {
+      try {
+        const response = await fetch(withBase('/__dev-prototype-manifest'), { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = (await response.json()) as Record<string, PrototypeMediaItem[]>;
+        const snapshot = JSON.stringify(data);
+        if (isActive) {
+          if (snapshot === devPrototypeSnapshotRef.current) return;
+          devPrototypeSnapshotRef.current = snapshot;
+          setDevPrototypeManifest(data);
+        }
+      } catch {
+        // keep generated fallback when dev endpoint is unavailable
+      }
+    };
+
+    void loadDevPrototypeManifest();
+
+    const interval = window.setInterval(() => {
+      void loadDevPrototypeManifest();
+    }, 2000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const prototypeManifest = import.meta.env.DEV && devPrototypeManifest ? devPrototypeManifest : PROTOTYPE_MANIFEST;
+  const prototypes: PrototypeNote[] = (prototypeManifest[projectId] ?? []).map((item, index) => ({
     image: withBase(item.src),
     caption: prototypeData?.captions?.[index] || `Prototype ${item.id}`,
     notes: prototypeData?.annotations?.[index],

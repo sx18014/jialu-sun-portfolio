@@ -1,8 +1,8 @@
-import React, { useLayoutEffect, useRef, useMemo } from 'react';
+import React, { useLayoutEffect, useRef, useMemo, useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import Draggable from 'gsap/Draggable';
 import { withBase } from '../constants';
-import { PROJECT_COLLAGE_MANIFEST } from '../generated/projectCollageManifest';
+import { PROJECT_COLLAGE_MANIFEST, type ProjectCollageItem } from '../generated/projectCollageManifest';
 
 gsap.registerPlugin(Draggable);
 
@@ -13,16 +13,53 @@ interface ImageCollageProps {
 export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const collageRef = useRef<HTMLDivElement>(null);
+  const [devManifest, setDevManifest] = useState<Record<string, ProjectCollageItem[]> | null>(null);
+  const devManifestSnapshotRef = useRef<string | null>(null);
   const rowGap = 40;
   const topMargin = 40;
   const minContainerHeight = 700;
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    let isActive = true;
+
+    const loadDevManifest = async () => {
+      try {
+        const response = await fetch(withBase('/__dev-collage-manifest'), { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = (await response.json()) as Record<string, ProjectCollageItem[]>;
+        const snapshot = JSON.stringify(data);
+        if (isActive) {
+          if (snapshot === devManifestSnapshotRef.current) return;
+          devManifestSnapshotRef.current = snapshot;
+          setDevManifest(data);
+        }
+      } catch {
+        // keep generated fallback when dev endpoint is unavailable
+      }
+    };
+
+    void loadDevManifest();
+
+    const interval = window.setInterval(() => {
+      void loadDevManifest();
+    }, 2000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
   const baseImages = useMemo(() => {
-    const images = PROJECT_COLLAGE_MANIFEST[projectId] ?? [];
+    const manifest = import.meta.env.DEV && devManifest ? devManifest : PROJECT_COLLAGE_MANIFEST;
+    const images = manifest[projectId] ?? [];
     return images.slice(0, 20).map((item) => ({
       ...item,
       src: withBase(item.src)
     }));
-  }, [projectId]);
+  }, [projectId, devManifest]);
 
   // Create infinite collage items with original dimensions in 2 non-overlapping rows
   const collageItems = useMemo(() => {

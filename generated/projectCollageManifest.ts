@@ -231,5 +231,91 @@ export const PROJECT_COLLAGE_MANIFEST: Record<string, ProjectCollageItem[]> = {
       "height": 300,
       "src": "/projects/glassblowing/collage/13.webp"
     }
+  ],
+  "suitup": [
+    {
+      "id": "01",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/suitup/collage/01.webp"
+    },
+    {
+      "id": "02",
+      "width": 451,
+      "height": 300,
+      "src": "/projects/suitup/collage/02.webp"
+    },
+    {
+      "id": "03",
+      "width": 534,
+      "height": 300,
+      "src": "/projects/suitup/collage/03.webp"
+    },
+    {
+      "id": "04",
+      "width": 256,
+      "height": 300,
+      "src": "/projects/suitup/collage/04.gif"
+    },
+    {
+      "id": "05",
+      "width": 265,
+      "height": 300,
+      "src": "/projects/suitup/collage/05.gif"
+    },
+    {
+      "id": "06",
+      "width": 450,
+      "height": 300,
+      "src": "/projects/suitup/collage/06.webp"
+    },
+    {
+      "id": "IMG_4163 2",
+      "width": 169,
+      "height": 300,
+      "src": "/projects/suitup/collage/IMG_4163 2.gif"
+    },
+    {
+      "id": "IMG_6259",
+      "width": 196,
+      "height": 300,
+      "src": "/projects/suitup/collage/IMG_6259.gif"
+    },
+    {
+      "id": "IMG_7444",
+      "width": 533,
+      "height": 300,
+      "src": "/projects/suitup/collage/IMG_7444.gif"
+    },
+    {
+      "id": "IMG_9919",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/suitup/collage/IMG_9919.webp"
+    },
+    {
+      "id": "new-footer-ksc2",
+      "width": 619,
+      "height": 300,
+      "src": "/projects/suitup/collage/new-footer-ksc2.webp"
+    },
+    {
+      "id": "sports360",
+      "width": 450,
+      "height": 300,
+      "src": "/projects/suitup/collage/sports360.webp"
+    },
+    {
+      "id": "TransparentMatGlobal",
+      "width": 524,
+      "height": 300,
+      "src": "/projects/suitup/collage/TransparentMatGlobal.gif"
+    },
+    {
+      "id": "UIInteractions!",
+      "width": 522,
+      "height": 300,
+      "src": "/projects/suitup/collage/UIInteractions!.gif"
+    }
   ]
 };

@@ -50,7 +50,20 @@ const listFiles = async (dir) => {
   try {
     return await fs.readdir(dir);
   } catch (error) {
-    if (error.code === 'ENOENT') return [];
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return [];
+    throw error;
+  }
+};
+
+const listDirectories = async (dir) => {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+  } catch (error) {
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return [];
     throw error;
   }
 };
@@ -223,7 +236,7 @@ const pickPreferredFiles = (files, priority) => {
 };
 
 const processProjectCollages = async () => {
-  const projectDirs = await listFiles(PROJECTS_ROOT);
+  const projectDirs = await listDirectories(PROJECTS_ROOT);
   const manifest = {};
 
   for (const projectId of projectDirs) {
@@ -298,7 +311,7 @@ const processProjectCollages = async () => {
 };
 
 const processProjectApproach = async () => {
-  const projectDirs = await listFiles(PROJECTS_ROOT);
+  const projectDirs = await listDirectories(PROJECTS_ROOT);
   const manifest = {};
   const outputExts = new Set(['.webp', '.gif', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.mp4', '.webm', '.mov']);
 
@@ -371,7 +384,7 @@ const processProjectApproach = async () => {
 };
 
 const processProjectPrototypes = async () => {
-  const projectDirs = await listFiles(PROJECTS_ROOT);
+  const projectDirs = await listDirectories(PROJECTS_ROOT);
   const manifest = {};
   const outputExts = new Set(['.webp', '.gif', '.jpg', '.jpeg', '.png', '.tif', '.tiff']);
 

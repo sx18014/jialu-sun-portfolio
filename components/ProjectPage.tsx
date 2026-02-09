@@ -1,9 +1,9 @@
-import React, { useLayoutEffect, useState, useEffect } from 'react';
+import React, { useLayoutEffect, useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { PROJECTS, parseText, withBase } from '../constants';
 import { ImageCollage } from './ImageCollage';
 import { PrototypeSection } from './PrototypeSection';
-import { APPROACH_MANIFEST } from '../generated/approachManifest';
+import { APPROACH_MANIFEST, type ApproachMediaItem } from '../generated/approachManifest';
 
 // Helper to detect if hero media is video or image
 const getHeroMediaType = (path: string): 'video' | 'image' => {
@@ -15,6 +15,8 @@ export const ProjectPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [heroMedia, setHeroMedia] = useState<string | null>(null);
+  const [devApproachManifest, setDevApproachManifest] = useState<Record<string, ApproachMediaItem[]> | null>(null);
+  const devApproachSnapshotRef = useRef<string | null>(null);
 
   const actionButtonBase =
     'inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-2 border-black shadow-[0_3px_10px_rgba(0,0,0,0.24)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.28)]';
@@ -66,7 +68,41 @@ export const ProjectPage: React.FC = () => {
     checkHeroMedia();
   }, [id]);
 
-  const approachMedia = id ? (APPROACH_MANIFEST[id] ?? []) : [];
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    let isActive = true;
+
+    const loadDevApproachManifest = async () => {
+      try {
+        const response = await fetch(withBase('/__dev-approach-manifest'), { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = (await response.json()) as Record<string, ApproachMediaItem[]>;
+        const snapshot = JSON.stringify(data);
+        if (isActive) {
+          if (snapshot === devApproachSnapshotRef.current) return;
+          devApproachSnapshotRef.current = snapshot;
+          setDevApproachManifest(data);
+        }
+      } catch {
+        // keep generated fallback when dev endpoint is unavailable
+      }
+    };
+
+    void loadDevApproachManifest();
+
+    const interval = window.setInterval(() => {
+      void loadDevApproachManifest();
+    }, 2000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const approachManifest = import.meta.env.DEV && devApproachManifest ? devApproachManifest : APPROACH_MANIFEST;
+  const approachMedia = id ? (approachManifest[id] ?? []) : [];
 
   if (!project) {
     return (

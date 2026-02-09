@@ -79,5 +79,27 @@ export const APPROACH_MANIFEST: Record<string, ApproachMediaItem[]> = {
       "type": "image",
       "src": "/projects/glassblowing/approach/04.gif"
     }
+  ],
+  "suitup": [
+    {
+      "id": "01",
+      "type": "image",
+      "src": "/projects/suitup/approach/01.gif"
+    },
+    {
+      "id": "02",
+      "type": "image",
+      "src": "/projects/suitup/approach/02.gif"
+    },
+    {
+      "id": "03",
+      "type": "image",
+      "src": "/projects/suitup/approach/03.gif"
+    },
+    {
+      "id": "04",
+      "type": "image",
+      "src": "/projects/suitup/approach/04.gif"
+    }
   ]
 };
