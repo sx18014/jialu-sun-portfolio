@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import * as echarts from 'echarts';
-import { PROJECTS } from '../constants';
+import { PROJECTS, withBase } from '../constants';
 import { USMapSVG } from './USMapSVG';
 
 // Map project locations to US state names
@@ -73,7 +73,7 @@ export const ThreeUSMap = forwardRef<ThreeUSMapRef, ThreeUSMapProps>(({ highligh
         resizeObserver.observe(chartRef.current);
       }
 
-      fetch('/maps/usa.json')
+      fetch(withBase('/maps/usa.json'))
         .then(response => response.json())
         .then(usaJson => {
           if (!usaJson || !usaJson.features || !Array.isArray(usaJson.features)) {
