@@ -120,24 +120,25 @@ export const PROJECTS: Project[] = [
     venueUrl: 'https://www.rmef.org/contact/visitor-center/',
     installDate: 'Oct 2025',
     coordinates: { top: '18%', left: '30%' }, // Montana - Northwest
-    shortDescription: 'A four-wall immersive gesture-based experience where visitors “think like an elk” through full-body interaction, built on a custom AI tracking pipeline.',
+    shortDescription: 'A four-wall immersive gesture-based experience where visitors “think like an elk” through full-body interaction, built on a custom Machine Learning Tracking pipeline.',
     image: withBase('/images/projects/elk.jpg'), // UPDATE: Replace with your image path
     color: '#8D6E63',
     tags: ['Unreal Engine', 'TouchDesigner', 'Motion Tracking'],
     fullDescription: {
       vision: txt(`Visitors enter a sweeping, four-season projection mural stretching across the gallery.
-        As they move closer, animations reveal elk behaviors and ecological storytelling.
+        As they move closer, animations reveal elk behaviors and ecological knowledge.
 
         \n
-        Stepping onto a projected “start spot” opens a portal into each season,
-        where visitors take control of an elk using full-body gestures: 
-        foraging across spring meadows, following scent trails to find the herd in summer,
+        Stepping onto a projected “start spot” opens a magical portal into each season,
+        where visitors take control of an elk using body gestures: 
+        foraging across spring meadows, following scent trails and picking a branch to find the herd in summer,
         raking trees and fighting in fall, digging snow for food and running to escape predators in winter.
 
         \n
-        The experience blends education, storytelling, and motion-driven gameplay,
-        transforming wildlife learning into an embodied, playful encounter.`),
-      approach: txt(`Designing a reliable gesture system for a museum environment meant tackling unpredictable lighting, changing backgrounds, unusual camera angles, and varied visitor behavior. To support four different seasonal interactions, I developed a flexible, modular tracking pipeline that could adapt quickly during both development and installation.
+        The experience blends education, storytelling, and learn by doing gameplay,
+        transforming wildlife learning into an embodied, playful immersive experience.`),
+      approach: txt(`Designing a reliable gesture system for a museum environment meant tackling unpredictable lighting, changing backgrounds, unusual camera angles, and varied visitor behavior.
+        To support four seasonal unique interactive gameplay, I developed a flexible, modular tracking pipeline that could adapt quickly during both **development** and **installation**.
 
         \n
         This approach allowed the team to explore creative ideas, test gestures early, iterate toward more intuitive interactions, and maintain high tracking quality across all four projection walls.
@@ -154,7 +155,7 @@ export const PROJECTS: Project[] = [
         streams processed data directly into Unreal Engine for mapping to gameplay
 
         \n
-        This separation made the system easy to debug, tune, and scale across four unique camera setups.
+        This separation made the system easy to debug, tune, and scale across four different camera setups onsite.
 
         \n
         **Installation**
@@ -164,9 +165,9 @@ export const PROJECTS: Project[] = [
         \n
         Each wall had different lighting, shadows, and backgrounds.
         Using real-time visualization in TouchDesigner,
-        the tracking could be quickly adjusted for each space, ensuring smooth performance across all four seasons.`),
+        the tracking could be quickly adjusted for each space, ensuring smooth performance and consistent behaviors across all four seasons.`),
       experience: '',
-      connection: txt(``)
+      connection: ''
     },
     prototypes: {
       captions: [
@@ -181,11 +182,11 @@ export const PROJECTS: Project[] = [
         'Let’s rake the tree!'
       ],
       annotations: [
-        'What if visitors see their skeleton? (Easy for debugging… not so cute for immersion.)',
+        'What if visitors see their skeleton? (Easy for debug, but will break the immersion of becoming an elk.)',
         'Camera overhead?\nHand-tracking to trigger UI hotspots, single person only',
-        'More people, less detail? Full-body triggering hotspots by hands, feet, shoulders… chaotic but interesting!',
+        'Full-body triggering hotspots by hands, feet, shoulders… chaotic but interesting!',
         'Early hand velocity test to see if we can ‘dig’ and ‘run’ with motion.',
-        'If I’m hungry… can digging feel THIS fun?',
+        'I’m hungry!! Digging for food is so much FUN!!!',
         'Finally, hand and feet velocity are combined, drives the elk’s running, escape from the coyote.',
         'Early test using Blend Pose in UE Animation Blueprint:\nHuman head position mapped with elk head 4 direction animations.',
         'Kid head, Elk head\nPerfect Match!',
@@ -206,25 +207,27 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 'suitup',
-    title: 'SuitUp',
+    title: 'Suit Up!',
     location: 'Pittsburgh, PA',
     venue: 'Kamin Science Center',
     venueUrl: 'https://kaminsciencecenter.org/exhibits/sports360/',
     installDate: 'Dec 2025',
     coordinates: { top: '33%', left: '73%' }, // Pittsburgh, PA - Northeast
-    shortDescription: 'A webcam-powered interactive exhibit where guests “try on” five sports uniforms through motion tracking, then explore how material science enables performance and protection.',
+    shortDescription: 'A webcam-powered interactive exhibit where guests virtual-try-on five sports uniforms through motion tracking, then explore how gears enhance performance and protect bodies.',
     image: withBase('/images/projects/suitup.JPG'), // UPDATE: Replace with your image path
     color: '#EF5350',
     tags: ['Unity', 'Motion Tracking'],
     fullDescription: {
-      vision:  txt(`Suit Up is a two-station, large-format (75” portrait) interactive at Kamin Science Center
-        that lets visitors see themselves as athletes—hockey goalie, Paralympic runner, football player, bicycle racer, and softball catcher.
+      vision:  txt(`Suit Up is a 75” portrait interactive that lets visitors see themselves as professional athletes
+        in five different sports: hockey goalie, Paralympic runner, football player, bicycle racer, and softball catcher.
 
         \n
-        As guests move, a stylized avatar mirrors their body motion; selecting a sport overlays the corresponding uniform and reveals short callouts highlighting key performance and safety features.
+        Visitor could pick a uniform to see a stylized avatar mirroring their body motion.
+        Hover a hotspot triggers a zoom in view of the gear, which allows vistor to learn about key performance or safety features.
+        Finally, striking a pose and taking a photo is most be-loved moment!
 
         \n
-        The experience balances quick, playful costume switching with optional deeper reading via hotspots and locker-based exhibit content.
+        The experience balances playful interactions, vibrant art style and optional deeper dive into knowledge.
         `),
       approach: txt(`Suit Up is built for **instant onboarding**: 
         visitors step into frame, see a responsive avatar immediately, 
@@ -239,32 +242,56 @@ export const PROJECTS: Project[] = [
         **Implementation**
 
         [MediaPipe](https://developers.google.com/mediapipe)
-        provides robust pose and hand tracking from a single webcam feed.
+        provides robust full body tracking from a single webcam feed.
         Pose landmarks are mapped onto a humanoid rig in Unity to puppeteer the on-screen avatar, 
         with a calibrated Y-offset to better match vertical motion like jump or squat.
 
         \n
         Hotspot interactions “zoom in” on key areas includes camera movement and 
-        reveal hidden layers through targeted material swaps and highlight states, 
+        reveal hidden layers through material swaps and highlight states, 
         such as **Shoulder Pads** for Football Player.
 
         \n
-        A final **strike a pose** capture moment reinforces participation
-         and creates a social, playful finish suitable for the attract loop.
+        A final **strike a pose** photo moment reinforces participation
+         and creates a social and playful finish. Also creates contents for the attract loop.
 
         \n
         **Installation**
 
         The system was optimized for museum use, with a focus on reliability and minimal maintenance requirements.
         I also developed calibration tools for flexible onsite camera tweakment to supported the installation process.
-        The system was tested with real visitors to fine-tune the interaction and ensure a smooth experience.`),
+        The system was tested with diverse audience to fine-tune the interaction and ensure a smooth experience.`),
       experience: '',
       connection: ''
+    },
+    prototypes: {
+      captions: [
+        'Avatar Puppeteering Flexibility Test',
+        'Snap Lens Studio',
+        'Unity + MediaPipe',
+        'Snap Lens Studio Fencing Test',
+        'Toon Shader',
+        '3D hotspots attached to body parts?',
+        'Submarine virtual Hotspots!',
+        'Where are my gloves???',
+        'Paralympic runner is so complicated!'
+      ],
+      annotations: [
+        'Jump, squat, turning a round, can it hanle any crazy gestures?',
+        'How it feels like to have virtual gear attach to body parts?',
+        'Do we really want to show faces and real background?',
+        'Do we want to make sure uniforms true to body size?',
+        'Spider-Verse! Graffiti! Let’s be colorful and vibrant.',
+        'Feels intuitive but they all move in motion - Hard to catch!',
+        'They are streched long for hand moving back and forth\nUI rendered on overlay\nOf course invisible in Game!',
+        'Classic Clip Plane problem\nRecalculate Bounds and Update When Offscreen helps',
+        'Running Blade, Suspension System, Prosthetic Sock & Socket, all layering together\nJoints are specifically calculated for hotsopot connected lines'
+      ]
     },
     myRole: {
       title: 'Solo Developer',
       responsibilities: [
-        'Prototyped and evaluated multiple tracking approaches including **RealSense Kinect**, **Snapchat Lens Studio**, **OpenCV** before selecting the final solution for reliability and exhibition constraints.',
+        'Prototyped and evaluated multiple tracking approaches including **RealSense Kinect**, **Snapchat Lens Studio**, **OpenCV** for reliability and exhibition constraints.',
         'Built a webcam-based tracking pipeline using **MediaPipe** AI pose tracking solution, improving museum maintainability and lowering hardware complexity.',
         'Constructed the interactive system: motion tracking, avatar puppeteering, sport selection UI, and hotspot content triggers.',
         'Implemented stylized rendering **Toon Shader** to match the exhibition’s graffiti visual language.'
@@ -274,7 +301,7 @@ export const PROJECTS: Project[] = [
     award: {
       title: "2026 10Best Readers' Choice Award",
       category: 'Best Science Museum — ranked #3 of 10',
-      url: 'https://www.anthemawards.com/winners/list/entry/#!education-art-culture/special-projects/path-of-liberty-that-which-unites-us/0/path-of-liberty/619933',
+      url: 'https://10best.usatoday.com/awards/kamin-science-center-pittsburgh-pennsylvania/',
       logo: withBase('/images/awards/suitup-award.png')
     },
     featured: true,

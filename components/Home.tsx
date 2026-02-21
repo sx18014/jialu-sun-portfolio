@@ -699,8 +699,8 @@ export const Home: React.FC = () => {
           }
           @keyframes ambient-life {
             0% { opacity: 0; transform: translateY(12px) scale(0.75); }
-            16% { opacity: 0.9; transform: translateY(-2px) scale(1.08); }
-            65% { opacity: 0.85; transform: translateY(-6px) scale(1.04); }
+            16% { opacity: 1; transform: translateY(-2px) scale(1.08); }
+            65% { opacity: 1; transform: translateY(-6px) scale(1.04); }
             100% { opacity: 0; transform: translateY(-14px) scale(0.85); }
           }
           @keyframes ambient-float {
@@ -750,7 +750,7 @@ export const Home: React.FC = () => {
                     <img
                       src={item.src}
                       alt=""
-                      className="collage-sticker block h-auto mix-blend-multiply select-none pointer-events-none opacity-85"
+                      className="collage-sticker block h-auto mix-blend-multiply select-none pointer-events-none"
                       style={{ width: `${Math.round(item.size)}px` }}
                     />
                   </div>

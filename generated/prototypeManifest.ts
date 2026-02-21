@@ -117,5 +117,43 @@ export const PROTOTYPE_MANIFEST: Record<string, PrototypeMediaItem[]> = {
       "id": "06",
       "src": "/projects/glassblowing/prototypes/06.gif"
     }
+  ],
+  "suitup": [
+    {
+      "id": "01",
+      "src": "/projects/suitup/prototypes/01.gif"
+    },
+    {
+      "id": "02",
+      "src": "/projects/suitup/prototypes/02.gif"
+    },
+    {
+      "id": "03",
+      "src": "/projects/suitup/prototypes/03.gif"
+    },
+    {
+      "id": "04",
+      "src": "/projects/suitup/prototypes/04.gif"
+    },
+    {
+      "id": "05",
+      "src": "/projects/suitup/prototypes/05.gif"
+    },
+    {
+      "id": "06",
+      "src": "/projects/suitup/prototypes/06.gif"
+    },
+    {
+      "id": "07",
+      "src": "/projects/suitup/prototypes/07.webp"
+    },
+    {
+      "id": "08",
+      "src": "/projects/suitup/prototypes/08.gif"
+    },
+    {
+      "id": "09",
+      "src": "/projects/suitup/prototypes/09.gif"
+    }
   ]
 };

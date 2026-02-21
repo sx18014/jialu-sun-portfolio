@@ -48,7 +48,9 @@ export const WorkIndex: React.FC = () => {
       <div className="max-w-7xl mx-auto px-8 pt-32 pb-16">
         <h1 className="text-4xl md:text-6xl font-semibold text-black mb-4 tracking-tight">Selected Work</h1>
         <p className="text-gray-600 text-base md:text-lg max-w-2xl font-normal leading-relaxed">
-          A location-first view of my installations across the US, each one rooted in a specific community and built for the people who gather there. Hover a project to highlight its location on the map.
+          Here are my selected installations across the US, 
+          each one rooted in a specific landscape, built for the local community and tourists.
+          Hover a project to highlight its location on the map.
         </p>
         <div className="mt-8 flex flex-wrap gap-2.5">
           {allTags.map((tag, index) => {
@@ -99,9 +101,6 @@ export const WorkIndex: React.FC = () => {
             <div className="relative overflow-visible">
               <FridgeMap focusedProjectId={activeProjectId} interactive={false} />
             </div>
-            <p className="text-center mt-5 text-sm text-slate-400 font-light">
-              The map highlights the project you hover.
-            </p>
           </div>
 
           <div className="flex-1">

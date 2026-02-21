@@ -90,10 +90,6 @@ export const InfiniteGallery: React.FC = () => {
                   />
                 </picture>
 
-                {/* Sticky tape pinned top-right */}
-                <div className="absolute -top-3 -right-4 rotate-2">
-                  <div className="w-16 h-6 bg-amber-50/90 border border-amber-200 shadow-sm rotate-3 origin-center" />
-                </div>
               </div>
             </div>
           );
