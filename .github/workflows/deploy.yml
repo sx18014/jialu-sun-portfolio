@@ -29,7 +29,7 @@ jobs:
 
       - name: Add CNAME file
         run: |
-          echo "www.sunjialu.com" > dist/CNAME
+          echo "sunjialu.com" > dist/CNAME
 
       - uses: actions/upload-pages-artifact@v3
         with:
