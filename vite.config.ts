@@ -214,8 +214,9 @@ const devCollageManifestPlugin = (): Plugin => ({
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const base = env.VITE_BASE_URL || '/';
     return {
-      base: mode === 'production' ? '/jialu-sun-portfolio/' : '/',
+      base,
       server: {
         port: 3000,
         host: '0.0.0.0',
