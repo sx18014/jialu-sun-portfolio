@@ -194,7 +194,7 @@ export const PROJECTS: Project[] = [
       ]
     },
     myRole: {
-      title: 'Lead Developer & Creative Technologist (solo developer)',
+      title: 'Lead Developer & Creative Technologist',
       responsibilities: [
         'Led all technical R&D, tracking systems, and gameplay implementation',
         'Co-shaped interaction design through extensive prototyping and playtesting',
@@ -316,7 +316,7 @@ export const PROJECTS: Project[] = [
     installDate: 'May 2023',
     coordinates: { top: '36%', left: '73%' }, // Pittsburgh, PA - Northeast
     shortDescription: 'An award-winning VR glassblowing experience which helps teens learn hot-shop workflow in a safe, guided virtual studio.',
-    image: withBase('/images/projects/glassblowing.jpg'), // UPDATE: Replace with your image path
+    image: withBase('/images/projects/glassblowing.jpg'),
     color: '#FFCA28',
     tags: ['Unity', 'Mixed Reality', 'Motion Tracking'],
     fullDescription: {
@@ -325,31 +325,31 @@ export const PROJECTS: Project[] = [
          then see results in a virtual gallery to connect technique, craft, and artistic outcome.
 
         \n
-        This first-of-its-kind VR educational and creative experience is used to: 
-        
+        This Virtual Reality educational and creative experience is used to: 
+
         \n
-          -  Expand access to glass education beyond the walls of the PGC facility
+          -  Expand access to glassblowing beyond the physical space of PGC
         \n
-          -  Educate young students about glassblowing
+          -  Educate young students about key workflows of glassblowing
         \n
-          -  Generate appreciation and excitement for glass
+          -  Trigger appreciation and curiosity for hands-on experience
         \n
           -  Prepare students before they step up to the 2,000-degree furnace`),
       approach: txt(`To replicate glassblowing in VR in a way that is realistic, playful, and safe, 
-        the core approach was to treat interaction design as both a craft simulation problem and a K–12 usability problem. 
+        the core approach was to treat interaction design as both a simulation problem and a usability problem. 
         We leveraged **Meta Quest Pro hand tracking** to make the experience feel physically intuitive, 
         while still guiding users toward “safe” behaviors that mirror real hot-shop constraints.
 
        \n
-       On the technical side, the interaction system focused on reliable pipe handling: 
+       On the technical side, the interaction system focused on blowing pipe handling: 
        detecting **Grab** & **Pinch**, and keeping virtual hands visually “locked” to correct positions on the blowing pipe.
        We iterated through multiple **gesture detection** strategies and **grab zone** designs, balancing two competing goals - 
        reduce frustration when tracking is imperfect and maintain believable hand placement and safety logic.
 
        \n
        Through repeated playtests with **K–12 students**, we refined toward a more forgiving, natural-feeling gesture model 
-       that still enforces heat-aware grab zones. The result is a controller-free interaction that feels VR-native, 
-       supports varied user behaviors, and stays grounded in the real-world logic of glassblowing.`),
+       that still enforces heat-aware grab zones.
+       The result is supports varied user behaviors, and stays true to real experience.`),
       experience: '',
       connection: ''
     },
@@ -365,8 +365,8 @@ export const PROJECTS: Project[] = [
       annotations: [
         'Pinch the straw → move to mouth → distance threshold = blow!',
         'Physics-driven bone rig generates real-time motion between straw and blowpipe.',
-        'Blaze started as a simple cube to block out guidance, timing, and movement.',
-        'Hands-on hot shop experience to ground the VR simulation in real technique and safety rules.',
+        'Blaze, the flame guide started as a simple cube to block out guidance, timing, and movement.',
+        'I had a couple real hot shop experiences to ground the VR simulation and safety rules.',
         'Simulated pipe cooling at the water fountain to reinforce safety timing.',
         'End the workflow by exhibiting the player’s work next to featured artists, reinforces pride and completion.'
       ]
@@ -377,7 +377,7 @@ export const PROJECTS: Project[] = [
         'Led R&D and implementation of **Meta Quest Pro hand tracking**. Built reliable interactions for holding and manipulating the blowpipe.',
         'Developed **blow** mechanic by detecting hand-to-headset distance to micmic straw-to-mouth distance',
         'Built a bone based tool to dynamically generate soft tube connected straw and blowpipe for believable real-time motion.',
-        'Designed and implemented step-by-step learning experience guided by an animated Cartoon Character and iterated the experience through K–12 playtests'
+        'Designed and implemented learning experience guided by an animated Cartoon Character and iterated the experience through K–12 playtests'
       ]
     },
     award: {
@@ -398,20 +398,47 @@ export const PROJECTS: Project[] = [
     venueUrl: 'https://pathoflibertynyc.com/',
     installDate: 'May 2025',
     coordinates: { top: '30%', left: '80%' }, // New York - Northeast
-    shortDescription: 'An award-winning, six-acre outdoor installation on Manhattan’s East Side that invites visitors to contribute their voices to a living digital tapestry celebrating the upcoming 250th anniversary of American independence.',
+    shortDescription: 'An award-winning, 6.7 acres outdoor installation in Manhattan where visitors record and submit their stories which powered by a custom Unity kiosk + CMS pipeline that turns public participation into a living digital tapestry.',
     image: withBase('/images/projects/freedomplaza.jpg'), // UPDATE: Replace with your image path
     color: '#FFCA28',
     tags: ['FFmpeg', 'Unity', 'Shaders', 'Networking'],
     fullDescription: {
-      vision: txt(`Designed by C&G Partners and featuring work by filmmaker Daniella Vale, 
-          the exhibition presents hundreds of personal testimonials on 16-foot projection structures
+      vision: txt(`Path of Liberty presents hundreds of personal testimonials on 16-foot projection structures
           and invites visitors to add their own reflections through interactive media stations.
 
         \n
-          RLMG developed the full digital media system, including the video-recording touch-screen kiosks inside the tent, backend CMS workflow,
-          and the gesture-responsive outdoor projection where approved visitor submissions appear as part of an animated flag tapestry.
-          These components combine to create an evolving, visitor-generated record of what liberty means in America today.`),
-      approach: '',
+          Visitors step into one of two touchscreen recording kiosks to answer “What does it mean to be American?”, 
+          review their clip, select a background, and submit it to a local hosted CMS. 
+          
+
+        \n
+        Approved entries become part of the larger outdoor media dispaly, a digital flag, forming an evolving archive of public voices for the celebration of America’s 250th birthday. 
+        The work combines real-time media capture, backend integration, and onsite calibration to reliably run in a high-traffic environment.`),
+      approach: txt(`The project required a robust, low-maintenance system to handle media capture and processing in a public space.
+        Kiosk App is Built as a distributed pipeline: a **Unity** front-end for guided recording UX, a local **FFmpeg** processing layer for deterministic media output, and a **Directus** backend for asset management and moderation.
+
+        \n
+        **Implementation**
+        \n
+        [FFmpegUnityBind2](https://github.com/Spirit30/FFmpegUnityBind2)
+        integrates webcam/microphone capture and manages FFmpeg execution from Unity including encode, trim/crop, still-frame extraction, process control and cleanup.
+
+        [Directus](https://directus.io/) as the backend for asset storage and metadata, supporting moderation status and downstream publishing.
+
+        \n
+        The system could gracefully handle complex user behaviors in public spaces like re-records, restarts, and walk-aways.
+
+        \n
+        **Installation & Impact**
+        \n
+        A custumed greenscreen removal and background replacement tool were implemented with a shader-based workflow 
+        and tuned in person to match real lighting and camera conditions.
+
+        \n
+        The result is a seamless, reliable experience that allows visitors to participate in a meaningful way,
+        while providing a robust backend for content curation and display.
+        The system has been running successfully in the high-traffic environment of Freedom Plaza since its opening.`
+),
       experience: '',
       connection: ''
     },
@@ -425,11 +452,30 @@ export const PROJECTS: Project[] = [
     myRole: {
       title: 'Kiosk Software Developer',
       responsibilities: [
-        'Built the kiosk recording system in **Unity**, integrating **FFmpeg** for real-time video/audio capture, trimming, encoding, and frame extraction.',
-        'Developed a robust flow to handle preview, retakes, resolution, temporary file cleanup, visitors walk away and restart at anytime.',
-        'Implemented **CMS** integration using **Directus**, handling upload of video + thumbnail assets, user metadata, and branching logic for optional visitor email notifications',
-        'Prototyped early flag-motion concepts in **Three.js**, exploring dynamic tile animations and interactive camera controls',
-        'Supported onsite installation, troubleshooting networked camera/microphone signals over Q-SYS and adjusting kiosk lighting for clean greenscreen segmentation.'
+        'Built the **Unity** App for media capture, state handling, and unattended edge cases.',
+        'Integrated **FFmpeg** for media record, encode, trim, crop, frame capture/extract.',
+        'Implemented CMS with **Directus** for media upload, metadata, moderation status workflow, and the optional email opt-in branch.',
+        'Prototyped flag motion in **Three.js**, exploring tile animations and interaction options',
+        'Supported installation and troubleshooted networked signals over **Q-SYS**',
+        'Built a **shader-based** greenscreen removal tool for onsite lighting condition.'
+      ]
+    },
+    prototypes: {
+      captions: [
+        'Mediapipe Image Segmentation',
+        'Testing at Office',
+        'Testing Remove Real Background',
+        'How would the chopped tiles flag move in motion?',
+        'Flag with Human body!',
+        'Shader Parameters Tweakment Onsite'
+      ],
+      annotations: [
+        'Machine Learning model for Image Segmentation prefers lower resolution input.',
+        'A temporary shooting booth with greenscreen was set up to test proof of concept',
+        'What if background could be removed without greenscreen?',
+        'Using three.js to prototype a web demo with wind parameters',
+        'We tested depth camera to see how flag react with human presence.',
+        'With lighting adjustment and camera calibration for the cleanest result.'
       ]
     },
     featured: true,

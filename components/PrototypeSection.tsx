@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { withBase } from '../constants';
 import { PROTOTYPE_MANIFEST, type PrototypeMediaItem } from '../generated/prototypeManifest';
+import { PROJECT_TEXT_STYLES } from './projectTextStyles';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -76,11 +77,12 @@ export const PrototypeSection: React.FC<PrototypeSectionProps> = ({ projectId, p
 
   if (prototypes.length === 0) return null;
 
+  const cols = 3;
+  const colPositions = ['2%', '36%', '70%'];
+  const rowGap = 550;
+
   const generatePositions = (count: number) => {
     const positions = [];
-    const cols = 3;
-    const colPositions = ['2%', '36%', '70%'];
-    const rowGap = 550;
     
     for (let i = 0; i < count; i++) {
       const col = i % cols;
@@ -94,11 +96,32 @@ export const PrototypeSection: React.FC<PrototypeSectionProps> = ({ projectId, p
   };
 
   const organicPositions = generatePositions(prototypes.length);
-  const containerHeight = Math.ceil(prototypes.length / 3) * 550 + 400;
+  const estimateNoteHeight = (text?: string) => {
+    if (!text?.trim()) return 0;
+
+    const estimatedWrappedLines = text
+      .split('\n')
+      .reduce((count, line) => count + Math.max(1, Math.ceil(line.trim().length / 26)), 0);
+
+    // mt-6 + handwritten text line boxes + a little breathing room
+    return 24 + estimatedWrappedLines * 26 + 12;
+  };
+
+  const estimatedCardHeight = 340; // w-80 (320px) + 10px top/bottom padding
+  const contentBottom = prototypes.reduce((maxBottom, proto, index) => {
+    const pos = organicPositions[index] || organicPositions[0];
+    const estimatedBottom = pos.top + estimatedCardHeight + estimateNoteHeight(proto.notes);
+    return Math.max(maxBottom, estimatedBottom);
+  }, 0);
+
+  const containerHeight = Math.max(
+    Math.ceil(prototypes.length / cols) * rowGap + 60,
+    contentBottom + 90
+  );
 
   return (
     <div className="mb-0">
-      <h2 className="text-2xl font-semibold text-black mb-12">Early Stage Prototypes</h2>
+      <h2 className={`${PROJECT_TEXT_STYLES.sectionH2} mb-12`}>Early Stage Prototypes</h2>
       
       <div
         className="relative w-screen left-1/2 right-1/2 -mx-[50vw]"
@@ -173,7 +196,7 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
         ease: 'back.out(1.2)'
       });
 
-      if (annotationRef.current && notes) {
+      if (annotationRef.current) {
         tl.to(annotationRef.current, {
           opacity: 1,
           x: 0,
@@ -184,7 +207,7 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
     });
 
     return () => ctx.revert();
-  }, [rotation, isLeft, notes]);
+  }, [rotation, isLeft, notes, caption]);
 
   return (
     <div 
@@ -214,9 +237,7 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
             className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-50/90 px-5 py-1.5 border border-amber-200 shadow-sm"
             style={{ transform: 'translateX(-50%) rotate(-2deg)' }}
           >
-            <p className="text-sm font-['Comic_Sans_MS','Chalkboard_SE','Bradley_Hand',cursive] text-gray-800 whitespace-nowrap font-medium">
-              {caption}
-            </p>
+            <div className="w-20 h-3" aria-hidden="true" />
           </div>
         )}
         
@@ -234,15 +255,24 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
         {/* Caption removed below; now in top tape */}
       </div>
 
-      {/* Handwritten Annotations - Below image */}
-      {notes && (
+      {/* Title + Handwritten Annotations - Below image */}
+      {(caption || notes) && (
         <div 
           ref={annotationRef}
           className="mt-6 w-64 text-center"
         >
-          <div className="font-['Comic_Sans_MS','Chalkboard_SE','Bradley_Hand',cursive] text-base text-gray-700 leading-relaxed whitespace-pre-line">
-            {notes}
-          </div>
+          {caption && (
+            <p
+              className={`${PROJECT_TEXT_STYLES.annotationText} text-lg font-semibold mb-2 leading-snug`}
+            >
+              {caption}
+            </p>
+          )}
+          {notes && (
+            <div className={`${PROJECT_TEXT_STYLES.annotationText} whitespace-pre-line`}>
+              {notes}
+            </div>
+          )}
         </div>
       )}
     </div>

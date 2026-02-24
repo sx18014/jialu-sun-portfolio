@@ -56,6 +56,21 @@ export const APPROACH_MANIFEST: Record<string, ApproachMediaItem[]> = {
       "id": "02",
       "type": "image",
       "src": "/projects/freedomplaza/approach/02.webp"
+    },
+    {
+      "id": "IMG_1708 2",
+      "type": "image",
+      "src": "/projects/freedomplaza/approach/IMG_1708 2.webp"
+    },
+    {
+      "id": "IMG_1726 3",
+      "type": "image",
+      "src": "/projects/freedomplaza/approach/IMG_1726 3.webp"
+    },
+    {
+      "id": "IMG_1743 4",
+      "type": "image",
+      "src": "/projects/freedomplaza/approach/IMG_1743 4.webp"
     }
   ],
   "glassblowing": [

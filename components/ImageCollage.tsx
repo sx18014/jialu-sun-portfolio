@@ -171,6 +171,7 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       
       const draggable = Draggable.create(collage, {
         type: "x",
+        zIndexBoost: false,
         edgeResistance: 0,
         inertia: {
           resistance: 80,

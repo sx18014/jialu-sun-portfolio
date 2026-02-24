@@ -50,6 +50,54 @@ export const PROJECT_COLLAGE_MANIFEST: Record<string, ProjectCollageItem[]> = {
       "width": 716,
       "height": 300,
       "src": "/projects/boise/collage/07.gif"
+    },
+    {
+      "id": "IMG_7625",
+      "width": 533,
+      "height": 300,
+      "src": "/projects/boise/collage/IMG_7625.webp"
+    },
+    {
+      "id": "IMG_7642",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/boise/collage/IMG_7642.webp"
+    },
+    {
+      "id": "IMG_7646",
+      "width": 533,
+      "height": 300,
+      "src": "/projects/boise/collage/IMG_7646.webp"
+    },
+    {
+      "id": "IMG_7658",
+      "width": 533,
+      "height": 300,
+      "src": "/projects/boise/collage/IMG_7658.webp"
+    },
+    {
+      "id": "IMG_7679",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/boise/collage/IMG_7679.webp"
+    },
+    {
+      "id": "SustainableBoise-3-2100x1803-f62aa775-4e49-4e02-8c5f-35a20b4a57fa",
+      "width": 349,
+      "height": 300,
+      "src": "/projects/boise/collage/SustainableBoise-3-2100x1803-f62aa775-4e49-4e02-8c5f-35a20b4a57fa.webp"
+    },
+    {
+      "id": "SustainableBoise-5-2100x1403-9c3895a1-7f10-41d2-ac9f-a41cca8c00a8",
+      "width": 449,
+      "height": 300,
+      "src": "/projects/boise/collage/SustainableBoise-5-2100x1403-9c3895a1-7f10-41d2-ac9f-a41cca8c00a8.webp"
+    },
+    {
+      "id": "WaterShed_02",
+      "width": 225,
+      "height": 300,
+      "src": "/projects/boise/collage/WaterShed_02.webp"
     }
   ],
   "elk": [
@@ -156,6 +204,54 @@ export const PROJECT_COLLAGE_MANIFEST: Record<string, ProjectCollageItem[]> = {
       "width": 363,
       "height": 300,
       "src": "/projects/freedomplaza/collage/freedom-68.webp"
+    },
+    {
+      "id": "freedomplaza",
+      "width": 480,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/freedomplaza.webp"
+    },
+    {
+      "id": "freedomplaza0",
+      "width": 225,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/freedomplaza0.webp"
+    },
+    {
+      "id": "freedomplaza1",
+      "width": 520,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/freedomplaza1.webp"
+    },
+    {
+      "id": "IMG_1691 2",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/IMG_1691 2.webp"
+    },
+    {
+      "id": "IMG_1737",
+      "width": 533,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/IMG_1737.gif"
+    },
+    {
+      "id": "IMG_1748 2",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/IMG_1748 2.webp"
+    },
+    {
+      "id": "IMG_1758 2",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/IMG_1758 2.webp"
+    },
+    {
+      "id": "IMG_1760 2",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/freedomplaza/collage/IMG_1760 2.webp"
     }
   ],
   "glassblowing": [

@@ -90,6 +90,10 @@ export const PROTOTYPE_MANIFEST: Record<string, PrototypeMediaItem[]> = {
     {
       "id": "05",
       "src": "/projects/freedomplaza/prototypes/05.webp"
+    },
+    {
+      "id": "IMG_1742",
+      "src": "/projects/freedomplaza/prototypes/IMG_1742.gif"
     }
   ],
   "glassblowing": [

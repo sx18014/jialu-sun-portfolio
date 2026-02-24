@@ -4,12 +4,54 @@ import { PROJECTS, parseText, withBase } from '../constants';
 import { ImageCollage } from './ImageCollage';
 import { PrototypeSection } from './PrototypeSection';
 import { APPROACH_MANIFEST, type ApproachMediaItem } from '../generated/approachManifest';
+import { PROJECT_TEXT_STYLES } from './projectTextStyles';
 
 // Helper to detect if hero media is video or image
 const getHeroMediaType = (path: string): 'video' | 'image' => {
   const ext = path.split('.').pop()?.toLowerCase();
   return ext === 'mp4' || ext === 'webm' || ext === 'mov' ? 'video' : 'image';
 };
+
+const renderInlineRichText = (text: string) =>
+  parseText(text).map((part, index) => {
+    if (part.type === 'bold') {
+      return (
+        <strong key={index} className="font-semibold text-[#1f1f1f]">
+          {part.content}
+        </strong>
+      );
+    }
+    if (part.type === 'link') {
+      return (
+        <a
+          key={index}
+          href={part.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={PROJECT_TEXT_STYLES.inlineLink}
+        >
+          {part.content}
+        </a>
+      );
+    }
+    return <span key={index}>{part.content}</span>;
+  });
+
+const renderMultilineRichText = (text: string) =>
+  text.split('\n').map((line, lineIndex, lines) => (
+    <React.Fragment key={lineIndex}>
+      {renderInlineRichText(line)}
+      {lineIndex < lines.length - 1 &&
+        (line === '' || lines[lineIndex + 1] === '' ? (
+          <>
+            <br />
+            <br />
+          </>
+        ) : (
+          <br />
+        ))}
+    </React.Fragment>
+  ));
 
 export const ProjectPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -147,14 +189,14 @@ export const ProjectPage: React.FC = () => {
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16">
           {/* Left Column - Title and Metadata */}
           <div>
-            <h1 className="text-4xl md:text-6xl font-semibold text-black mb-6 tracking-tight">
+            <h1 className={`${PROJECT_TEXT_STYLES.projectH1} mb-6`}>
               {project.title}
             </h1>
             
             {/* Metadata */}
             <div className="mb-6">
               <div className="flex items-baseline gap-3 mb-3 flex-wrap">
-                <p className="text-lg text-gray-900 font-medium">
+                <p className="text-base md:text-lg text-[#1f1f1f] font-medium leading-6">
                   {project.venue}
                 </p>
                 {project.venueUrl && (
@@ -168,10 +210,10 @@ export const ProjectPage: React.FC = () => {
                   </a>
                 )}
               </div>
-              <p className="text-sm text-gray-500 mb-1">
+              <p className={`${PROJECT_TEXT_STYLES.metaText} mb-0`}>
                 {project.location}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className={PROJECT_TEXT_STYLES.metaText}>
                 Installed {project.installDate}
               </p>
             </div>
@@ -192,29 +234,38 @@ export const ProjectPage: React.FC = () => {
               ))}
             </div>
 
-            {/* My Role */}
-            {project.myRole && (
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-2xl font-semibold text-black mb-3">
-                  My Role
-                </h3>
-                <p className="text-base text-gray-900 font-medium mb-4">
-                  {project.myRole.title}
-                </p>
-                <ul className="space-y-2">
-                  {project.myRole.responsibilities.map((item, index) => (
-                    <li key={index} className="text-sm text-gray-600 leading-relaxed flex">
-                      <span className="text-gray-400 mr-2">•</span>
-                      <span>
-                        {parseText(item).map((part, j) => {
-                          if (part.type === 'bold') return <strong key={j} className="font-semibold text-gray-900">{part.content}</strong>;
-                          if (part.type === 'link') return <a key={j} href={part.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{part.content}</a>;
-                          return <span key={j}>{part.content}</span>;
-                        })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+            {/* Award / Recognition */}
+            {project.award && (
+              <div className="pt-2">
+                <div className="bg-white border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,0.24)] p-4 md:p-5 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[7px_7px_0_rgba(0,0,0,0.24)]">
+                  <div className="flex items-start gap-4">
+                    {project.award.logo && (
+                      <img
+                        src={project.award.logo}
+                        alt="Award"
+                        className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <h4 className="text-base font-semibold text-[#1f1f1f] leading-snug mb-1">
+                        {project.award.title}
+                      </h4>
+                      <p className={`${PROJECT_TEXT_STYLES.metaText} mb-3`}>
+                        {project.award.category}
+                      </p>
+                      {project.award.url && (
+                        <a
+                          href={project.award.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`${actionButtonBase} bg-[#FFD93D] text-black`}
+                        >
+                          Award Glow →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -222,154 +273,143 @@ export const ProjectPage: React.FC = () => {
           {/* Right Column - Description */}
           <div>
             {/* One sentence summary */}
-            <p className="text-xl text-gray-700 font-normal mb-8 leading-relaxed">
+            <p className={`${PROJECT_TEXT_STYLES.leadText} mb-8`}>
               {project.shortDescription}
             </p>
             
             {/* Overview */}
             <div className="mb-6">
-              <h3 className="text-2xl font-semibold text-black mb-4">
+              <h3 className={`${PROJECT_TEXT_STYLES.sectionH2} mb-4`}>
                 Overview
               </h3>
-              <p className="text-base text-gray-600 font-normal leading-relaxed">
-                {project.fullDescription.vision.split('\n').map((line, i, arr) => <React.Fragment key={i}>{line}{i < arr.length - 1 && (line === '' || arr[i + 1] === '' ? <><br /><br /></> : <br />)}</React.Fragment>)}
+              <p className={PROJECT_TEXT_STYLES.bodyTextReadable}>
+                {renderMultilineRichText(project.fullDescription.vision)}
               </p>
             </div>
-            
-            {/* Award */}
-            {project.award && (
-              <div className="mb-6 flex items-center gap-6 flex-wrap">
-                {project.award.logo && (
-                  <img src={project.award.logo} alt="Award" className="w-24 h-24 object-contain" />
-                )}
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-1">{project.award.title}</h4>
-                  <p className="text-sm text-gray-500 mb-2">{project.award.category}</p>
-                  {project.award.url && (
-                    <a
-                      href={project.award.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${actionButtonBase} bg-[#FFD93D] text-black`}
-                    >
-                      Award Glow →
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
             
             {/* Experience removed */}
           </div>
         </div>
+
       </div>
 
       {/* Full Width Image Collage Section */}
       <ImageCollage projectId={project.id} />
 
       <div className="max-w-6xl mx-auto px-8 pb-20">
-        {/* Approach Section with Side Images */}
-        <div className="mb-20 grid md:grid-cols-2 gap-12">
-          <div>
-            <h2 className="text-2xl font-semibold text-black mb-8">
-              Approach
-            </h2>
-            <p className="text-gray-700 font-normal leading-relaxed">
-              {project.fullDescription.approach.split('\n').map((line, i, arr) => (
-                <React.Fragment key={i}>
-                  {parseText(line).map((part, j) => {
-                    if (part.type === 'bold') return <strong key={j} className="font-semibold">{part.content}</strong>;
-                    if (part.type === 'link') return <a key={j} href={part.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{part.content}</a>;
-                    return <span key={j}>{part.content}</span>;
-                  })}
-                  {i < arr.length - 1 && (line === '' || arr[i + 1] === '' ? <><br /><br /></> : <br />)}
-                </React.Fragment>
-              ))}
-            </p>
-          </div>
-          {approachMedia.length > 0 && (
-            <div className="grid grid-cols-2 gap-6">
-              {approachMedia.map((media, index) => {
-                const rotations = [2, -1.5, 1, -2, 1.5, -1, 2.5, -0.5, 1.2, -1.8];
-                const offsets = [
-                  { x: 0, y: 0 },
-                  { x: 8, y: -4 },
-                  { x: -6, y: 2 },
-                  { x: 4, y: -6 },
-                  { x: -8, y: 4 },
-                  { x: 6, y: -2 },
-                  { x: -4, y: 6 },
-                  { x: 8, y: 2 },
-                  { x: -6, y: -4 },
-                  { x: 4, y: 4 }
-                ];
-                return (
-                  <div 
-                    key={index}
-                    className="relative group cursor-pointer"
-                    style={{
-                      transform: `rotate(${rotations[index % rotations.length]}deg) translate(${offsets[index % offsets.length].x}px, ${offsets[index % offsets.length].y}px)`,
-                      transition: 'transform 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = `rotate(0deg) translate(0px, -8px) scale(1.05)`;
-                      e.currentTarget.style.zIndex = '10';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = `rotate(${rotations[index % rotations.length]}deg) translate(${offsets[index % offsets.length].x}px, ${offsets[index % offsets.length].y}px)`;
-                      e.currentTarget.style.zIndex = '0';
-                    }}
-                  >
-                    <div
-                      className="bg-white border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,0.35)]"
-                      style={{ padding: '10px 10px 14px 10px' }}
-                    >
-                      {media.type === 'video' ? (
-                        <video 
-                          src={withBase(media.src)} 
-                          className="w-full h-auto object-cover" 
-                          autoPlay 
-                          loop 
-                          muted 
-                          playsInline 
-                          preload="metadata"
-                        />
-                      ) : (
-                        <img 
-                          src={withBase(media.src)} 
-                          alt="" 
-                          className="w-full h-auto object-cover" 
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+        {project.myRole && (
+          <section className="mb-20 pt-0">
+            <div className="grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)] gap-8 md:gap-12 border-t-2 border-black pt-12">
+              <div>
+                <h2 className={`${PROJECT_TEXT_STYLES.sectionH2} mb-2`}>My Role</h2>
+                <p className={PROJECT_TEXT_STYLES.metaText}>{project.myRole.title}</p>
+              </div>
+              <div className="max-w-[68ch]">
+                <ul className="space-y-3">
+                  {project.myRole.responsibilities.map((item, index) => (
+                    <li key={index} className={`${PROJECT_TEXT_STYLES.bodyText} flex`}>
+                      <span className="text-gray-400 mr-2">•</span>
+                      <span>{renderInlineRichText(item)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          )}
-        </div>
+          </section>
+        )}
+
+        {/* Approach Section with Side Images */}
+        <section className="mb-20 border-t-2 border-black pt-12">
+          <div className="grid md:grid-cols-2 gap-12">
+            <div>
+              <h2 className={`${PROJECT_TEXT_STYLES.sectionH2} mb-8`}>
+                Approach
+              </h2>
+              <p className={PROJECT_TEXT_STYLES.bodyTextReadable}>
+                {renderMultilineRichText(project.fullDescription.approach)}
+              </p>
+            </div>
+            {approachMedia.length > 0 && (
+              <div className="grid grid-cols-2 gap-6">
+                {approachMedia.map((media, index) => {
+                  const rotations = [2, -1.5, 1, -2, 1.5, -1, 2.5, -0.5, 1.2, -1.8];
+                  const offsets = [
+                    { x: 0, y: 0 },
+                    { x: 8, y: -4 },
+                    { x: -6, y: 2 },
+                    { x: 4, y: -6 },
+                    { x: -8, y: 4 },
+                    { x: 6, y: -2 },
+                    { x: -4, y: 6 },
+                    { x: 8, y: 2 },
+                    { x: -6, y: -4 },
+                    { x: 4, y: 4 }
+                  ];
+                  return (
+                    <div
+                      key={index}
+                      className="relative group cursor-pointer"
+                      style={{
+                        transform: `rotate(${rotations[index % rotations.length]}deg) translate(${offsets[index % offsets.length].x}px, ${offsets[index % offsets.length].y}px)`,
+                        transition: 'transform 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = `rotate(0deg) translate(0px, -8px) scale(1.05)`;
+                        e.currentTarget.style.zIndex = '10';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = `rotate(${rotations[index % rotations.length]}deg) translate(${offsets[index % offsets.length].x}px, ${offsets[index % offsets.length].y}px)`;
+                        e.currentTarget.style.zIndex = '0';
+                      }}
+                    >
+                      <div
+                        className="bg-white border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,0.35)]"
+                        style={{ padding: '10px 10px 14px 10px' }}
+                      >
+                        {media.type === 'video' ? (
+                          <video
+                            src={withBase(media.src)}
+                            className="w-full h-auto object-cover"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            preload="metadata"
+                          />
+                        ) : (
+                          <img
+                            src={withBase(media.src)}
+                            alt=""
+                            className="w-full h-auto object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* Early Stage Prototypes */}
         <PrototypeSection projectId={project.id} prototypeData={project.prototypes} />
 
         {/* Impact removed */}
 
-        {/* Final Image */}
-        <div className="w-full h-80 bg-gray-50"></div>
-
       </div>
 
       {/* Next Project */}
       <div className="border-t border-gray-200 py-16 px-8">
         <div className="max-w-4xl mx-auto">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">
+          <p className={`${PROJECT_TEXT_STYLES.labelText} mb-4`}>
             NEXT PROJECT
           </p>
           <button 
             onClick={() => navigate(`/work/${nextProject.id}`)}
-            className="text-2xl md:text-4xl font-semibold text-black hover:text-gray-600 transition-transform duration-300 hover:scale-110 hover:rotate-1"
+            className="text-2xl md:text-4xl font-semibold tracking-tight text-[#1f1f1f] hover:text-gray-600 transition-transform duration-300 hover:scale-110 hover:rotate-1"
           >
             {nextProject.title}
           </button>

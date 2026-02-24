@@ -865,7 +865,7 @@ export const Home: React.FC = () => {
       </div>
 
       {/* Projects Section */}
-      <div id="projects" className="bg-amber-50/30 py-20 px-8">
+      <div id="projects" className="py-20 px-8">
         <div className="max-w-7xl mx-auto">
           <div className="space-y-24">
             {PROJECTS
