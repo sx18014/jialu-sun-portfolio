@@ -1,11 +1,7 @@
-import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useState, useRef, useEffect } from 'react';
 import { withBase } from '../constants';
 import { PROTOTYPE_MANIFEST, type PrototypeMediaItem } from '../generated/prototypeManifest';
 import { PROJECT_TEXT_STYLES } from './projectTextStyles';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface PrototypeNote {
   image: string;
@@ -156,62 +152,10 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
   position
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const noteRef = useRef<HTMLDivElement>(null);
-  const annotationRef = useRef<HTMLDivElement>(null);
   const rotation = [2, -1, 1.5, -2, 1, -1.5][index % 6];
-  
-  const isLeft = parseInt(position.left) < 40;
-
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      if (!noteRef.current) return;
-
-      gsap.set(noteRef.current, {
-        opacity: 0,
-        y: 50,
-        rotation: rotation + (isLeft ? -5 : 5)
-      });
-
-      if (annotationRef.current) {
-        gsap.set(annotationRef.current, {
-          opacity: 0,
-          x: isLeft ? -30 : 30
-        });
-      }
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: noteRef.current,
-          start: 'top 80%',
-          end: 'top 20%',
-          toggleActions: 'play none none none'
-        }
-      });
-
-      tl.to(noteRef.current, {
-        opacity: 1,
-        y: 0,
-        rotation: rotation,
-        duration: 0.8,
-        ease: 'back.out(1.2)'
-      });
-
-      if (annotationRef.current) {
-        tl.to(annotationRef.current, {
-          opacity: 1,
-          x: 0,
-          duration: 0.6,
-          ease: 'power2.out'
-        }, '-=0.3');
-      }
-    });
-
-    return () => ctx.revert();
-  }, [rotation, isLeft, notes, caption]);
 
   return (
     <div 
-      ref={noteRef}
       className="absolute flex flex-col items-center"
       style={{
         left: position.left,
@@ -257,10 +201,7 @@ const StickyNote: React.FC<PrototypeNote & { index: number; position: { left: st
 
       {/* Title + Handwritten Annotations - Below image */}
       {(caption || notes) && (
-        <div 
-          ref={annotationRef}
-          className="mt-6 w-64 text-center"
-        >
+        <div className="mt-6 w-64 text-center">
           {caption && (
             <p
               className={`${PROJECT_TEXT_STYLES.annotationText} text-lg font-semibold mb-2 leading-snug`}

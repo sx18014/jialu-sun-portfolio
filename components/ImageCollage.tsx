@@ -15,6 +15,8 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
   const collageRef = useRef<HTMLDivElement>(null);
   const [devManifest, setDevManifest] = useState<Record<string, ProjectCollageItem[]> | null>(null);
   const devManifestSnapshotRef = useRef<string | null>(null);
+  const itemGap = 40;
+  const stripCount = 5;
   const rowGap = 40;
   const topMargin = 40;
   const minContainerHeight = 700;
@@ -61,6 +63,24 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
     }));
   }, [projectId, devManifest]);
 
+  const gridWidth = useMemo(() => {
+    if (baseImages.length === 0) return 0;
+
+    let totalRow1Width = 0;
+    let totalRow2Width = 0;
+
+    for (let i = 0; i < baseImages.length; i++) {
+      const imageData = baseImages[i];
+      if (i % 2 === 0) {
+        totalRow1Width += imageData.width + itemGap;
+      } else {
+        totalRow2Width += imageData.width + itemGap;
+      }
+    }
+
+    return Math.max(totalRow1Width, totalRow2Width);
+  }, [baseImages, itemGap]);
+
   // Create infinite collage items with original dimensions in 2 non-overlapping rows
   const collageItems = useMemo(() => {
     const items = [];
@@ -89,16 +109,16 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
     for (let i = 0; i < collageImages.length; i++) {
       const imageData = collageImages[i];
       if (i % 2 === 0) {
-        totalRow1Width += imageData.width + 40;
+        totalRow1Width += imageData.width + itemGap;
       } else {
-        totalRow2Width += imageData.width + 40;
+        totalRow2Width += imageData.width + itemGap;
       }
     }
     
     const stripWidth = Math.max(totalRow1Width, totalRow2Width);
     
     // Create horizontal strips for infinite horizontal scroll
-    for (let strip = 0; strip < 4; strip++) {
+    for (let strip = 0; strip < stripCount; strip++) {
       let row1X = strip * stripWidth;
       let row2X = strip * stripWidth;
       
@@ -117,7 +137,7 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
             width: imageData.width,
             height: imageData.height,
           });
-          row1X += imageData.width + 40;
+          row1X += imageData.width + itemGap;
         } else {
           // Bottom row
           items.push({
@@ -128,12 +148,12 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
             width: imageData.width,
             height: imageData.height,
           });
-          row2X += imageData.width + 40;
+          row2X += imageData.width + itemGap;
         }
       }
     }
     return items;
-  }, [baseImages, minContainerHeight, rowGap, topMargin]);
+  }, [baseImages, itemGap, minContainerHeight, rowGap, stripCount, topMargin]);
 
   const containerHeight = useMemo(() => {
     if (baseImages.length === 0) return minContainerHeight;
@@ -147,29 +167,19 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
   useLayoutEffect(() => {
     if (!collageRef.current || !containerRef.current) return;
     if (baseImages.length === 0) return;
+    if (gridWidth <= 0) return;
     
     const ctx = gsap.context(() => {
       const collage = collageRef.current!;
-      
-      // Calculate grid width based on actual content
-      let totalRow1Width = 0;
-      let totalRow2Width = 0;
-      
-      for (let i = 0; i < baseImages.length; i++) {
-        const imageData = baseImages[i];
-        if (i % 2 === 0) {
-          totalRow1Width += imageData.width + 40;
-        } else {
-          totalRow2Width += imageData.width + 40;
-        }
-      }
-      
-      const gridWidth = Math.max(totalRow1Width, totalRow2Width);
+      const centerStripIndex = Math.floor(stripCount / 2);
+      const minWrapX = -(centerStripIndex + 1) * gridWidth;
+      const maxWrapX = -(centerStripIndex - 1) * gridWidth;
+      let draggable: any = null;
       
       // Set initial position
-      gsap.set(collage, { x: -gridWidth * 2, y: 0 });
+      gsap.set(collage, { x: -centerStripIndex * gridWidth, y: 0 });
       
-      const draggable = Draggable.create(collage, {
+      draggable = Draggable.create(collage, {
         type: "x",
         zIndexBoost: false,
         edgeResistance: 0,
@@ -192,19 +202,15 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
       
       function wrapCollage() {
         const currentX = gsap.getProperty(collage, "x") as number;
-        
         let newX = currentX;
-        
-        // Smoother horizontal wrapping with more buffer
-        if (currentX > -gridWidth) {
-          newX = currentX - gridWidth;
-        } else if (currentX < -gridWidth * 4) {
-          newX = currentX + gridWidth;
-        }
-        
+
+        // Keep the track in a middle band so users never reach the visual edge.
+        while (newX > maxWrapX) newX -= gridWidth;
+        while (newX < minWrapX) newX += gridWidth;
+
         if (newX !== currentX) {
           gsap.set(collage, { x: newX });
-          draggable.update();
+          draggable?.update();
         }
       }
       
@@ -247,7 +253,7 @@ export const ImageCollage: React.FC<ImageCollageProps> = ({ projectId }) => {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [collageItems, baseImages]);
+  }, [baseImages, collageItems, gridWidth, stripCount]);
 
   return (
     <div

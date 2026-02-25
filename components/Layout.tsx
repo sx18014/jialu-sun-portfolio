@@ -51,6 +51,10 @@ export const Layout: React.FC<Props> = ({ children }) => {
     };
   }, [location]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const isHomePage = location.pathname === '/';
   const isProjectPage = location.pathname.startsWith('/work/') || location.pathname.startsWith('/project/');
   const bgColor = isScrolled

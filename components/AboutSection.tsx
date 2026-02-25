@@ -18,6 +18,12 @@ const COLLAGE_IMAGES = [
 const MAX_PINS = 8;
 const PIN_LIFETIME_MS = 10000;
 const INITIAL_PINS = 5;
+const SEED_PADDING = 28;
+const SEED_JITTER = 10;
+const SEED_MIN_DISTANCE = 130;
+const STICKER_EDGE_MARGIN = 72;
+const PARALLAX_MIN = 0.01;
+const PARALLAX_MAX = 0.035;
 
 const randomBetween = (min: number, max: number) => min + Math.random() * (max - min);
 const pickRandomImage = () => COLLAGE_IMAGES[Math.floor(Math.random() * COLLAGE_IMAGES.length)];
@@ -28,6 +34,7 @@ const pickRandomAvailableImage = (current: CollageItem[]) => {
   const pool = available.length > 0 ? available : COLLAGE_IMAGES;
   return pool[Math.floor(Math.random() * pool.length)];
 };
+const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
 
 type CollageItem = {
   id: number;
@@ -38,6 +45,8 @@ type CollageItem = {
   scale: number;
   parallax: number;
 };
+
+type SeedCorner = 'tl' | 'tr' | 'bl' | 'br';
 
 export const AboutSection: React.FC = () => {
   const aboutRef = useRef<HTMLDivElement>(null);
@@ -127,7 +136,13 @@ export const AboutSection: React.FC = () => {
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(() => {
-        setScrollOffset(window.scrollY || 0);
+        if (aboutRef.current) {
+          const rect = aboutRef.current.getBoundingClientRect();
+          const relativeOffset = Math.max(0, -rect.top);
+          setScrollOffset(Math.min(relativeOffset, rect.height));
+        } else {
+          setScrollOffset(window.scrollY || 0);
+        }
         ticking = false;
       });
     };
@@ -155,7 +170,7 @@ export const AboutSection: React.FC = () => {
         y,
         rotation: randomBetween(-15, 15),
         scale: randomBetween(0.7, 1),
-        parallax: randomBetween(0.02, 0.08)
+        parallax: randomBetween(PARALLAX_MIN, PARALLAX_MAX)
       };
       created = item;
       const next = [...prev, item];
@@ -210,27 +225,86 @@ export const AboutSection: React.FC = () => {
         return;
       }
 
-      const corners = ['tl', 'tr', 'bl', 'br'] as const;
-      const padding = 28;
+      const corners: SeedCorner[] = ['tl', 'tr', 'bl', 'br'];
       const shuffledImages = [...COLLAGE_IMAGES].sort(() => Math.random() - 0.5);
-      const seeded: CollageItem[] = targets.slice(0, INITIAL_PINS).map((target, index) => {
+      const preferredTargets = targets.filter(
+        (target) => !target.hasAttribute('data-collage-seed-skip-initial')
+      );
+      const seedTargets = (
+        preferredTargets.length > 0 ? shuffle(preferredTargets) : shuffle(targets)
+      ).slice(0, INITIAL_PINS);
+
+      const clampPoint = (x: number, y: number) => ({
+        x: Math.max(STICKER_EDGE_MARGIN, Math.min(containerRect.width - STICKER_EDGE_MARGIN, x)),
+        y: Math.max(STICKER_EDGE_MARGIN, Math.min(containerRect.height - STICKER_EDGE_MARGIN, y))
+      });
+
+      const distanceToNearest = (x: number, y: number, seeded: CollageItem[]) => {
+        if (seeded.length === 0) return Infinity;
+        return Math.min(...seeded.map((item) => Math.hypot(item.x - x, item.y - y)));
+      };
+
+      const seeded: CollageItem[] = [];
+      seedTargets.forEach((target, index) => {
         const rect = target.getBoundingClientRect();
-        const corner = corners[index % corners.length];
-        const cornerPoint = {
-          x: corner === 'tr' || corner === 'br' ? rect.right - padding : rect.left + padding,
-          y: corner === 'bl' || corner === 'br' ? rect.bottom - padding : rect.top + padding
-        };
-        const x = cornerPoint.x - containerRect.left + randomBetween(-10, 10);
-        const y = cornerPoint.y - containerRect.top + randomBetween(-10, 10);
-        return {
+        const avoidedCorners = new Set(
+          (target.dataset.collageSeedAvoidCorners || '')
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean) as SeedCorner[]
+        );
+        const candidateCorners = corners.filter((corner) => !avoidedCorners.has(corner));
+        const cornersToTry = candidateCorners.length > 0 ? candidateCorners : corners;
+        let bestCandidate:
+          | {
+              x: number;
+              y: number;
+              nearestDistance: number;
+            }
+          | null = null;
+
+        for (const corner of shuffle([...cornersToTry])) {
+          for (let attempt = 0; attempt < 3; attempt += 1) {
+            const cornerPoint = {
+              x:
+                corner === 'tr' || corner === 'br'
+                  ? rect.right - SEED_PADDING
+                  : rect.left + SEED_PADDING,
+              y:
+                corner === 'bl' || corner === 'br'
+                  ? rect.bottom - SEED_PADDING
+                  : rect.top + SEED_PADDING
+            };
+            const point = clampPoint(
+              cornerPoint.x - containerRect.left + randomBetween(-SEED_JITTER, SEED_JITTER),
+              cornerPoint.y - containerRect.top + randomBetween(-SEED_JITTER, SEED_JITTER)
+            );
+            const nearestDistance = distanceToNearest(point.x, point.y, seeded);
+
+            if (!bestCandidate || nearestDistance > bestCandidate.nearestDistance) {
+              bestCandidate = { ...point, nearestDistance };
+            }
+            if (nearestDistance >= SEED_MIN_DISTANCE) break;
+          }
+          if (bestCandidate && bestCandidate.nearestDistance >= SEED_MIN_DISTANCE) break;
+        }
+
+        const point = bestCandidate
+          ? { x: bestCandidate.x, y: bestCandidate.y }
+          : clampPoint(
+              rect.left - containerRect.left + rect.width / 2,
+              rect.top - containerRect.top + rect.height / 2
+            );
+
+        seeded.push({
           id: idRef.current++,
           src: shuffledImages[index % shuffledImages.length],
-          x: Math.max(0, Math.min(containerRect.width, x)),
-          y: Math.max(0, Math.min(containerRect.height, y)),
+          x: point.x,
+          y: point.y,
           rotation: randomBetween(-15, 15),
           scale: randomBetween(0.7, 1),
-          parallax: randomBetween(0.02, 0.08)
-        };
+          parallax: randomBetween(PARALLAX_MIN, PARALLAX_MAX)
+        });
       });
 
       seededRef.current = true;
@@ -352,7 +426,7 @@ export const AboutSection: React.FC = () => {
             </div>
           </div>
 
-          <div data-collage-seed className="relative bg-[#A78BFA] rounded-sm p-6 shadow-[3px_3px_0_rgba(0,0,0,0.35)] border-2 border-[#1f1f1f]/70 -rotate-1 transition-transform duration-300 hover:-translate-y-1 hover:-rotate-2 hover:shadow-[8px_8px_0_rgba(0,0,0,0.35)]">
+          <div data-collage-seed data-collage-seed-avoid-corners="tr" className="relative bg-[#A78BFA] rounded-sm p-6 shadow-[3px_3px_0_rgba(0,0,0,0.35)] border-2 border-[#1f1f1f]/70 -rotate-1 transition-transform duration-300 hover:-translate-y-1 hover:-rotate-2 hover:shadow-[8px_8px_0_rgba(0,0,0,0.35)]">
             <h4 className="text-2xl font-bold mb-3 text-[#1f1f1f]">Currently</h4>
             <a
               href="https://www.rlmg.com/"
@@ -384,7 +458,7 @@ export const AboutSection: React.FC = () => {
           </div>
         </div>
 
-        <div data-collage-seed className="about-item bg-white rounded-sm p-8 shadow-[3px_3px_0_rgba(0,0,0,0.35)] border-2 border-[#1f1f1f]/70 rotate-1 transition-transform duration-300 hover:-translate-y-1 hover:rotate-2 hover:shadow-[8px_8px_0_rgba(0,0,0,0.35)]">
+        <div data-collage-seed data-collage-seed-skip-initial className="about-item bg-white rounded-sm p-8 shadow-[3px_3px_0_rgba(0,0,0,0.35)] border-2 border-[#1f1f1f]/70 rotate-1 transition-transform duration-300 hover:-translate-y-1 hover:rotate-2 hover:shadow-[8px_8px_0_rgba(0,0,0,0.35)]">
           <h4 className="text-2xl font-bold mb-4 text-center text-[#1f1f1f]">Core Skills</h4>
           <div className="flex flex-wrap justify-center gap-3">
             {[

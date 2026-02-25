@@ -140,9 +140,8 @@ const COLLAGE_IMAGES = [
 
 const MAX_PINS = 8;
 const PIN_LIFETIME_MS = 10000;
-const AMBIENT_MAX = 8;
-const AMBIENT_BEAT_MS = 900;
-const AMBIENT_LIFE_MS = AMBIENT_BEAT_MS * AMBIENT_MAX;
+const PARALLAX_MIN = 0.01;
+const PARALLAX_MAX = 0.035;
 
 const randomBetween = (min: number, max: number) => min + Math.random() * (max - min);
 type StickerSource = { src: string };
@@ -163,45 +162,26 @@ type CollageItem = {
   rotation: number;
   scale: number;
   parallax: number;
-  introDelay: number;
 };
 
 const SKILL_TAGS = [
-  { label: '🎮 Unity & Unreal', bg: '#FFF2C6' },
-  { label: '💃 AI & Motion Tracking', bg: '#E7F4FF' },
-  { label: '🏛️ Museum Installations', bg: '#E7FFE7' },
-  { label: '✨ Mixed Reality', bg: '#FDE7F3' }
+  'Unity & Unreal',
+  'AI & Motion Tracking',
+  'Museum Installations',
+  'Mixed Reality'
 ];
-
-type AmbientItem = {
-  id: number;
-  src: string;
-  x: number;
-  y: number;
-  rotation: number;
-  scale: number;
-  parallax: number;
-  lifeMs: number;
-  floatMs: number;
-  size: number;
-};
 
 export const Home: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
-  const heroContentRef = useRef<HTMLDivElement>(null);
   const shapesRef = useRef<HTMLDivElement>(null);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [pupilPos, setPupilPos] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
   const [heroPinnedItems, setHeroPinnedItems] = useState<CollageItem[]>([]);
-  const [heroAmbientItems, setHeroAmbientItems] = useState<AmbientItem[]>([]);
   const [heroScrollOffset, setHeroScrollOffset] = useState(0);
   const heroIdRef = useRef(0);
   const isHeroMountedRef = useRef(true);
-  const heroPinnedRef = useRef<CollageItem[]>([]);
-  const heroAmbientRef = useRef<AmbientItem[]>([]);
   const heroDragRef = useRef<{
-    kind: 'pinned' | 'ambient';
     id: number;
     offsetX: number;
     offsetY: number;
@@ -217,6 +197,13 @@ export const Home: React.FC = () => {
     }, 3000 + Math.random() * 2000);
     return () => clearInterval(blinkInterval);
   }, []);
+
+  const scrollToProjects = () => {
+    document.getElementById('projects')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -297,14 +284,6 @@ export const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    heroPinnedRef.current = heroPinnedItems;
-  }, [heroPinnedItems]);
-
-  useEffect(() => {
-    heroAmbientRef.current = heroAmbientItems;
-  }, [heroAmbientItems]);
-
-  useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
       if (!heroDragRef.current || !heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
@@ -317,31 +296,19 @@ export const Home: React.FC = () => {
       const dx = x - heroDragRef.current.startX;
       const dy = y - heroDragRef.current.startY;
       if (Math.hypot(dx, dy) > 6) heroDragRef.current.moved = true;
-      if (heroDragRef.current.kind === 'pinned') {
-        setHeroPinnedItems((prev) =>
-          prev.map((item) =>
-            item.id === heroDragRef.current?.id ? { ...item, x: clampedX, y: clampedY } : item
-          )
-        );
-      } else {
-        setHeroAmbientItems((prev) =>
-          prev.map((item) =>
-            item.id === heroDragRef.current?.id ? { ...item, x: clampedX, y: clampedY } : item
-          )
-        );
-      }
+      setHeroPinnedItems((prev) =>
+        prev.map((item) =>
+          item.id === heroDragRef.current?.id ? { ...item, x: clampedX, y: clampedY } : item
+        )
+      );
     };
 
     const handlePointerUp = () => {
       if (!heroDragRef.current) return;
-      const { id, moved, kind } = heroDragRef.current;
+      const { id, moved } = heroDragRef.current;
       heroDragRef.current = null;
       if (!moved) {
-        if (kind === 'pinned') {
-          setHeroPinnedItems((prev) => prev.filter((item) => item.id !== id));
-        } else {
-          setHeroAmbientItems((prev) => prev.filter((item) => item.id !== id));
-        }
+        setHeroPinnedItems((prev) => prev.filter((item) => item.id !== id));
       }
     };
 
@@ -359,131 +326,19 @@ export const Home: React.FC = () => {
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(() => {
-        setHeroScrollOffset(window.scrollY || 0);
+        if (heroRef.current) {
+          const rect = heroRef.current.getBoundingClientRect();
+          const relativeOffset = Math.max(0, -rect.top);
+          setHeroScrollOffset(Math.min(relativeOffset, rect.height));
+        } else {
+          setHeroScrollOffset(window.scrollY || 0);
+        }
         ticking = false;
       });
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    let beatTimer = 0;
-    let startTimer = 0;
-    const seedTimers: number[] = [];
-    let raf = 0;
-
-    const getFallbackPoint = (existing: AmbientItem[]) => {
-      const rect = heroRef.current?.getBoundingClientRect();
-      const width = rect?.width ?? window.innerWidth;
-      const height = rect?.height ?? window.innerHeight;
-      if (width < 10 || height < 10) return null;
-      const margin = 40;
-      const safeWidth = Math.max(width, margin * 2 + 10);
-      const safeHeight = Math.max(height, margin * 2 + 10);
-      const contentRect = heroContentRef.current?.getBoundingClientRect();
-      const avoidPadding = 140;
-      const avoidRect = contentRect
-        ? {
-            left: contentRect.left - (rect?.left ?? 0) - avoidPadding,
-            right: contentRect.right - (rect?.left ?? 0) + avoidPadding,
-            top: contentRect.top - (rect?.top ?? 0) - avoidPadding,
-            bottom: contentRect.bottom - (rect?.top ?? 0) + avoidPadding
-          }
-        : {
-            left: safeWidth * 0.25,
-            right: safeWidth * 0.75,
-            top: safeHeight * 0.25,
-            bottom: safeHeight * 0.75
-          };
-
-      for (let attempt = 0; attempt < 40; attempt++) {
-        const x = randomBetween(margin, safeWidth - margin);
-        const y = randomBetween(margin, safeHeight - margin);
-        if (
-          x > avoidRect.left &&
-          x < avoidRect.right &&
-          y > avoidRect.top &&
-          y < avoidRect.bottom
-        ) {
-          continue;
-        }
-        const tooClose = existing.some(
-          (p) => Math.hypot(p.x - x, p.y - y) < 70
-        );
-        if (!tooClose) return { x, y };
-      }
-      return { x: margin, y: margin };
-    };
-
-    const buildAmbientItem = (existing: AmbientItem[]): AmbientItem | null => {
-      const point = getFallbackPoint(existing);
-      if (!point) return null;
-      const src = pickUniqueImage([...existing, ...heroPinnedRef.current]);
-      if (!src) return null;
-      const lifeMs = AMBIENT_LIFE_MS;
-      const floatMs = randomBetween(1400, 3200);
-      return {
-        id: heroIdRef.current++,
-        src,
-        x: point.x,
-        y: point.y,
-        rotation: randomBetween(-20, 20),
-        scale: randomBetween(0.7, 1.35),
-        parallax: randomBetween(0.01, 0.035),
-        lifeMs,
-        floatMs,
-        size: randomBetween(100, 240)
-      };
-    };
-
-    const pushAmbient = () => {
-      if (!isHeroMountedRef.current || cancelled) return;
-      setHeroAmbientItems((prev) => {
-        let next = [...prev];
-        if (next.length >= AMBIENT_MAX) {
-          next = next.slice(1);
-        }
-        const item = buildAmbientItem(next);
-        if (!item) return next;
-        return [...next, item];
-      });
-    };
-
-    const start = () => {
-      if (cancelled) return;
-      if (!heroRef.current) {
-        raf = window.requestAnimationFrame(start);
-        return;
-      }
-
-      for (let i = 0; i < AMBIENT_MAX; i += 1) {
-        const timer = window.setTimeout(() => {
-          if (!isHeroMountedRef.current || cancelled) return;
-          pushAmbient();
-        }, i * AMBIENT_BEAT_MS);
-        seedTimers.push(timer);
-      }
-
-      startTimer = window.setTimeout(() => {
-        if (!isHeroMountedRef.current || cancelled) return;
-        beatTimer = window.setInterval(() => {
-          pushAmbient();
-        }, AMBIENT_BEAT_MS);
-      }, AMBIENT_BEAT_MS * AMBIENT_MAX);
-    };
-
-    start();
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(raf);
-      window.clearTimeout(startTimer);
-      window.clearInterval(beatTimer);
-      seedTimers.forEach((timer) => window.clearTimeout(timer));
-    };
   }, []);
 
   const getHeroRelativePoint = (event: React.PointerEvent<HTMLElement>) => {
@@ -498,7 +353,7 @@ export const Home: React.FC = () => {
   const spawnHeroPin = (x: number, y: number) => {
     let created: CollageItem | null = null;
     setHeroPinnedItems((prev) => {
-      const src = pickUniqueImage([...prev, ...heroAmbientRef.current]);
+      const src = pickUniqueImage(prev);
       if (!src) return prev;
       const item: CollageItem = {
         id: heroIdRef.current++,
@@ -507,8 +362,7 @@ export const Home: React.FC = () => {
         y,
         rotation: randomBetween(-15, 15),
         scale: randomBetween(0.7, 1),
-        parallax: randomBetween(0.02, 0.08),
-        introDelay: 0
+        parallax: randomBetween(PARALLAX_MIN, PARALLAX_MAX)
       };
       created = item;
       const next = [...prev, item];
@@ -519,81 +373,6 @@ export const Home: React.FC = () => {
       if (!isHeroMountedRef.current) return;
       setHeroPinnedItems((prev) => prev.filter((pinned) => pinned.id !== created?.id));
     }, PIN_LIFETIME_MS);
-  };
-
-  const getAmbientPoint = (existing: AmbientItem[]) => {
-    if (!heroRef.current || !heroContentRef.current) return null;
-    const containerRect = heroRef.current.getBoundingClientRect();
-    const contentRect = heroContentRef.current.getBoundingClientRect();
-    if (containerRect.width < 10 || containerRect.height < 10) return null;
-
-    const padding = 40;
-    const midX = (contentRect.left + contentRect.right) / 2;
-    const midY = (contentRect.top + contentRect.bottom) / 2;
-    const baseRadiusX = contentRect.width / 2 + padding;
-    const baseRadiusY = contentRect.height / 2 + padding;
-    const minGap = Math.min(
-      110,
-      Math.max(80, Math.min(containerRect.width, containerRect.height) * 0.12)
-    );
-    const minY = Math.max(0, contentRect.top - containerRect.top - 60);
-    const contentAvoidPadding = 140;
-    const avoidRect = {
-      left: contentRect.left - containerRect.left - contentAvoidPadding,
-      right: contentRect.right - containerRect.left + contentAvoidPadding,
-      top: contentRect.top - containerRect.top - contentAvoidPadding,
-      bottom: contentRect.bottom - containerRect.top + contentAvoidPadding
-    };
-
-    for (let attempt = 0; attempt < 40; attempt++) {
-      const useLeft = Math.random() < 0.5;
-      const angle = useLeft
-        ? randomBetween(Math.PI * 0.7, Math.PI * 1.3)
-        : randomBetween(-Math.PI * 0.3, Math.PI * 0.3);
-      const radiusX = baseRadiusX + randomBetween(20, 140);
-      const radiusY = baseRadiusY + randomBetween(10, 90);
-      let x = midX + Math.cos(angle) * radiusX;
-      let y = midY + Math.sin(angle) * radiusY * 0.6;
-
-      if (
-        x > contentRect.left - padding &&
-        x < contentRect.right + padding &&
-        y > contentRect.top - padding &&
-        y < contentRect.bottom + padding
-      ) {
-        const push = randomBetween(50, 100);
-        x = midX + Math.cos(angle) * (radiusX + push);
-        y = midY + Math.sin(angle) * (radiusY + push * 0.7);
-      }
-
-      const clampedX = Math.max(
-        0,
-        Math.min(containerRect.width, x - containerRect.left + randomBetween(-14, 14))
-      );
-      let clampedY = Math.max(
-        0,
-        Math.min(containerRect.height, y - containerRect.top + randomBetween(-14, 14))
-      );
-      if (clampedY < minY) {
-        clampedY = Math.min(containerRect.height, minY + randomBetween(8, 30));
-      }
-
-      if (
-        clampedX > avoidRect.left &&
-        clampedX < avoidRect.right &&
-        clampedY > avoidRect.top &&
-        clampedY < avoidRect.bottom
-      ) {
-        continue;
-      }
-
-      const tooClose = existing.some(
-        (p) => Math.hypot(p.x - clampedX, p.y - clampedY) < minGap
-      );
-      if (!tooClose) return { x: clampedX, y: clampedY };
-    }
-
-    return null;
   };
 
   const isInteractiveTarget = (target: HTMLElement | null) =>
@@ -608,8 +387,7 @@ export const Home: React.FC = () => {
 
   const handleHeroStickerPointerDown = (
     event: React.PointerEvent<HTMLDivElement>,
-    item: CollageItem,
-    kind: 'pinned' | 'ambient'
+    item: CollageItem
   ) => {
     event.stopPropagation();
     if (!heroRef.current) return;
@@ -617,7 +395,6 @@ export const Home: React.FC = () => {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     heroDragRef.current = {
-      kind,
       id: item.id,
       offsetX: x - item.x,
       offsetY: y - item.y,
@@ -659,24 +436,8 @@ export const Home: React.FC = () => {
               drop-shadow(0 -1px 0 rgba(255,255,255,0.95))
               drop-shadow(3px 3px 0 rgba(0,0,0,0.35));
           }
-          .collage-pin-appear {
-            animation: collage-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-          }
           .collage-pin-inner {
             animation: collage-float 6s ease-in-out infinite;
-            transform: rotate(var(--rot)) scale(var(--scale));
-            transform-origin: center;
-          }
-          .ambient-life {
-            animation-name: ambient-life;
-            animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation-fill-mode: forwards;
-            opacity: 0;
-          }
-          .ambient-float {
-            animation-name: ambient-float;
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
             transform: rotate(var(--rot)) scale(var(--scale));
             transform-origin: center;
           }
@@ -688,24 +449,9 @@ export const Home: React.FC = () => {
           .group:hover .pencil-draw {
             stroke-dashoffset: 0;
           }
-          @keyframes collage-pop {
-            0% { transform: translateY(10px) scale(0) rotate(-6deg); opacity: 0; }
-            100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-          }
           @keyframes collage-float {
             0% { transform: rotate(var(--rot)) scale(var(--scale)) translateY(0); }
             50% { transform: rotate(calc(var(--rot) - 2deg)) scale(var(--scale)) translateY(-6px); }
-            100% { transform: rotate(var(--rot)) scale(var(--scale)) translateY(0); }
-          }
-          @keyframes ambient-life {
-            0% { opacity: 0; transform: translateY(12px) scale(0.75); }
-            16% { opacity: 1; transform: translateY(-2px) scale(1.08); }
-            65% { opacity: 1; transform: translateY(-6px) scale(1.04); }
-            100% { opacity: 0; transform: translateY(-14px) scale(0.85); }
-          }
-          @keyframes ambient-float {
-            0% { transform: rotate(var(--rot)) scale(var(--scale)) translateY(0); }
-            50% { transform: rotate(calc(var(--rot) - 3.5deg)) scale(var(--scale)) translateY(-12px); }
             100% { transform: rotate(var(--rot)) scale(var(--scale)) translateY(0); }
           }
         `}</style>
@@ -716,48 +462,6 @@ export const Home: React.FC = () => {
           <div className="floating-shape absolute bottom-32 left-1/4 w-24 h-24 bg-[#6BCF7F] opacity-60 rotate-45 rounded-[2rem]" />
           <div className="floating-shape absolute top-1/3 right-1/4 w-12 h-12 rounded-full bg-[#A78BFA] opacity-60" />
           <div className="floating-shape absolute bottom-20 right-10 w-16 h-16 bg-[#FF9ECD] opacity-60" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-        </div>
-
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {heroAmbientItems.map((item) => (
-            <div
-              key={item.id}
-              className="absolute pointer-events-auto"
-              style={{
-                left: item.x,
-                top: item.y,
-                transform: `translate(-50%, -50%) translateY(${heroScrollOffset * item.parallax}px)`
-              }}
-            >
-              <div
-                className="ambient-life"
-                style={{ animationDuration: `${item.lifeMs}ms` } as React.CSSProperties}
-              >
-                <div
-                  className="ambient-float"
-                  style={{
-                    '--rot': `${item.rotation}deg`,
-                    '--scale': item.scale,
-                    animationDuration: `${item.floatMs}ms`
-                  } as React.CSSProperties}
-                >
-                  <div
-                    onPointerDown={(event) =>
-                      handleHeroStickerPointerDown(event, item as CollageItem, 'ambient')
-                    }
-                    className="cursor-grab active:cursor-grabbing group"
-                  >
-                    <img
-                      src={item.src}
-                      alt=""
-                      className="collage-sticker block h-auto mix-blend-multiply select-none pointer-events-none"
-                      style={{ width: `${Math.round(item.size)}px` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
 
         <div className="absolute inset-0 pointer-events-none z-30">
@@ -773,34 +477,29 @@ export const Home: React.FC = () => {
               }}
             >
               <div
-                className="collage-pin-appear"
-                style={{ animationDelay: `${item.introDelay || 0}s` }}
+                className="collage-pin-inner"
+                style={{
+                  '--rot': `${item.rotation}deg`,
+                  '--scale': item.scale,
+                  animationDelay: `${index * 0.2}s`
+                } as React.CSSProperties}
               >
                 <div
-                  className="collage-pin-inner"
-                  style={{
-                    '--rot': `${item.rotation}deg`,
-                    '--scale': item.scale,
-                    animationDelay: `${index * 0.2}s`
-                  } as React.CSSProperties}
+                  onPointerDown={(event) => handleHeroStickerPointerDown(event, item)}
+                  className="cursor-grab active:cursor-grabbing group"
                 >
-                  <div
-                    onPointerDown={(event) => handleHeroStickerPointerDown(event, item, 'pinned')}
-                    className="cursor-grab active:cursor-grabbing group"
-                  >
-                    <img
-                      src={item.src}
-                      alt=""
-                      className="collage-sticker block w-32 md:w-40 h-auto mix-blend-multiply select-none pointer-events-none transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-105"
-                    />
-                  </div>
+                  <img
+                    src={item.src}
+                    alt=""
+                    className="collage-sticker block w-36 md:w-48 h-auto mix-blend-multiply select-none pointer-events-none transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-105"
+                  />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div ref={heroContentRef} className="relative z-20 text-center px-6 max-w-5xl">
+        <div className="relative z-20 text-center px-6 max-w-5xl">
           <h1 className="hero-title text-4xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight tracking-tight text-gray-900">
             {SITE_CONTENT.hero.greeting}
           </h1>
@@ -841,27 +540,31 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          <div className="mt-24 mb-30 flex flex-wrap justify-center gap-10 text-sm font-semibold text-gray-900">
-            {SKILL_TAGS.map((tag, idx) => (
-              <div
-                key={tag.label}
-                className={`relative px-7 py-2 border border-[#2D2D2D]/40 transition-transform duration-200 hover:-translate-y-0.5 ${idx % 2 === 0 ? 'rotate-1' : '-rotate-1'}`}
-                style={{ backgroundColor: `${tag.bg}CC` }}
-              >
-                {tag.label}
-              </div>
-            ))}
+          <div className="mt-20 mb-30 text-gray-600">
+            <p className="max-w-3xl mx-auto text-center text-sm md:text-base font-normal text-gray-500 leading-relaxed cursor-default select-none">
+              {SKILL_TAGS.map((tag, idx) => (
+                <React.Fragment key={tag}>
+                  {idx > 0 && <span className="mx-2 text-gray-400">·</span>}
+                  <span>{tag}</span>
+                </React.Fragment>
+              ))}
+            </p>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <button
+          type="button"
+          onClick={scrollToProjects}
+          aria-label="Scroll to featured work"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer"
+        >
           <div className="w-14 h-14 flex items-center justify-center rotate-2">
             <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#2D2D2D" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 8l8 8 8-8" />
             </svg>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Projects Section */}
