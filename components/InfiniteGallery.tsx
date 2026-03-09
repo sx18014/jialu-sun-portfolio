@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { GALLERY_ITEMS } from '../galleryData';
+import { GALLERY_ITEMS, buildGalleryItems, type GalleryItem, type GalleryManifestLikeItem } from '../galleryData';
 
 export const InfiniteGallery: React.FC = () => {
   const [bubble, setBubble] = useState<{ visible: boolean; x: number; y: number; text: string }>({
@@ -10,16 +10,49 @@ export const InfiniteGallery: React.FC = () => {
   });
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [activeRefIndex, setActiveRefIndex] = useState(0);
+  const [devManifest, setDevManifest] = useState<GalleryManifestLikeItem[] | null>(null);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    let isCancelled = false;
+
+    const fetchDevManifest = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}__dev-gallery-manifest`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = (await response.json()) as GalleryManifestLikeItem[];
+        if (!isCancelled) {
+          setDevManifest(data);
+        }
+      } catch {
+        // Keep static manifest fallback on fetch errors.
+      }
+    };
+
+    void fetchDevManifest();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const galleryItems: GalleryItem[] = useMemo(() => {
+    if (import.meta.env.DEV && devManifest) {
+      return buildGalleryItems(devManifest);
+    }
+    return GALLERY_ITEMS;
+  }, [devManifest]);
 
   // Single-pass collage layout
   const displayArtworks = useMemo(() => {
     const sizes = ['small', 'medium', 'large', 'xlarge'];
-    const shuffled = [...GALLERY_ITEMS].sort(() => Math.random() - 0.5);
+    const shuffled = [...galleryItems].sort(() => Math.random() - 0.5);
     return shuffled.map((artwork, index) => ({
       ...artwork,
       collageSize: sizes[index % sizes.length]
     }));
-  }, []);
+  }, [galleryItems]);
 
   const selectedArtwork = useMemo(
     () => displayArtworks.find((artwork) => artwork.id === selectedArtworkId) ?? null,
@@ -41,13 +74,7 @@ export const InfiniteGallery: React.FC = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [selectedArtwork]);
 
-  const getStoryBadge = (artwork: (typeof displayArtworks)[number]) => {
-    if (!artwork.story) return '';
-    const refCount = artwork.story.references?.length ?? 0;
-    if (artwork.story.mode === 'sequence') return refCount > 0 ? `STORY ${refCount}` : 'STORY';
-    if (artwork.story.mode === 'multi-ref') return refCount > 0 ? `REF ${refCount}` : 'REF';
-    return 'REF';
-  };
+  const getReferenceCount = (artwork: (typeof displayArtworks)[number]) => artwork.story?.references?.length ?? 0;
 
 
 
@@ -69,6 +96,16 @@ export const InfiniteGallery: React.FC = () => {
         It’s how I archive feeling - small memories from travel, nature, and the people I love. Mocha, my orange cat, is a frequent guest star.
           <br />
         </p>
+        <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 bg-white border-2 border-black shadow-[3px_3px_0_rgba(0,0,0,0.2)] text-xs md:text-sm text-[#2f2f2f]">
+          <span>Click artworks with</span>
+          <span
+            aria-hidden
+            className="inline-flex items-center justify-center w-6 h-6 -mt-1 rounded-full border-2 border-black bg-[#FFD93D] font-semibold text-[11px] shadow-[2px_2px_0_rgba(0,0,0,0.25)] rotate-6"
+          >
+            i
+          </span>
+          <span>for extra story and references.</span>
+        </div>
       </div>
 
       {/* Masonry-style Collage */}
@@ -76,6 +113,7 @@ export const InfiniteGallery: React.FC = () => {
         {displayArtworks.map((artwork, idx) => {
           const tilt = ['-rotate-1', 'rotate-1', '-rotate-2', 'rotate-2', 'rotate-0'][idx % 5];
           const hasDetail = (artwork.story?.references?.length ?? 0) > 0;
+          const refCount = getReferenceCount(artwork);
           return (
             <div
               key={artwork.id}
@@ -115,15 +153,20 @@ export const InfiniteGallery: React.FC = () => {
             >
               <div className="relative bg-white border-2 border-black shadow-[6px_6px_0_rgba(0,0,0,0.35)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[8px_8px_0_rgba(0,0,0,0.35)]">
                 {hasDetail ? (
-                  <span className="absolute top-2 left-2 z-10 bg-[#FFD93D] border-2 border-black text-[11px] px-2 py-1 font-semibold tracking-wide">
-                    {getStoryBadge(artwork)}
+                  <span
+                    className="absolute -top-3 -right-3 z-10 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#FFD93D] border-2 border-black text-[13px] font-semibold shadow-[3px_3px_0_rgba(0,0,0,0.28)] rotate-6 transition-transform duration-200 group-hover:scale-105 group-hover:rotate-12"
+                    title={refCount === 1 ? 'More info (1 reference)' : `More info (${refCount} references)`}
+                  >
+                    i
                   </span>
                 ) : null}
                 <picture>
-                  {artwork.imageAvif ? (
+                  {artwork.imageAvif && artwork.imageAvif.toLowerCase().endsWith('.avif') ? (
                     <source srcSet={artwork.imageAvif} type="image/avif" />
                   ) : null}
-                  <source srcSet={artwork.imageWebp} type="image/webp" />
+                  {artwork.imageWebp.toLowerCase().endsWith('.webp') ? (
+                    <source srcSet={artwork.imageWebp} type="image/webp" />
+                  ) : null}
                   <img 
                     src={artwork.imageWebp} 
                     alt={artwork.title} 
@@ -191,10 +234,12 @@ export const InfiniteGallery: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-3">
               <div className="bg-white border-2 border-black p-2 shadow-[4px_4px_0_rgba(0,0,0,0.25)]">
                 <picture>
-                  {selectedArtwork.imageAvif ? (
+                  {selectedArtwork.imageAvif && selectedArtwork.imageAvif.toLowerCase().endsWith('.avif') ? (
                     <source srcSet={selectedArtwork.imageAvif} type="image/avif" />
                   ) : null}
-                  <source srcSet={selectedArtwork.imageWebp} type="image/webp" />
+                  {selectedArtwork.imageWebp.toLowerCase().endsWith('.webp') ? (
+                    <source srcSet={selectedArtwork.imageWebp} type="image/webp" />
+                  ) : null}
                   <img
                     src={selectedArtwork.imageWebp}
                     alt={selectedArtwork.title}
@@ -208,8 +253,11 @@ export const InfiniteGallery: React.FC = () => {
               <div className="bg-white border-2 border-black p-3 shadow-[4px_4px_0_rgba(0,0,0,0.25)]">
                 {selectedArtwork.story ? (
                   <>
-                    <p className="text-xs font-semibold tracking-[0.12em] text-[#444] mb-2">
-                      {selectedArtwork.story.mode === 'sequence' ? 'STORY' : 'REFERENCE'}
+                    <p className="text-xs font-semibold tracking-[0.12em] text-[#444] mb-1">MORE INFO</p>
+                    <p className="text-[11px] text-[#666] mb-2">
+                      {selectedArtwork.story.mode === 'sequence'
+                        ? 'Story sequence'
+                        : `${selectedArtwork.story.references?.length ?? 0} reference${(selectedArtwork.story.references?.length ?? 0) === 1 ? '' : 's'}`}
                     </p>
                     {selectedArtwork.story.notes ? (
                       <p className="text-xs leading-relaxed text-[#2b2b2b] mb-3">{selectedArtwork.story.notes}</p>

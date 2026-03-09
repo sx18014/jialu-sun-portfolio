@@ -2,6 +2,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 
+if (process.env.SKIP_ASSETS_BUILD === '1') {
+  console.log('Skipping asset compression because SKIP_ASSETS_BUILD=1.');
+  process.exit(0);
+}
+
 const cwd = process.cwd();
 const generatedDir = path.join(cwd, 'generated');
 

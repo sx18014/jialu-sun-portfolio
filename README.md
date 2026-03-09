@@ -25,6 +25,8 @@ Personal portfolio site featuring interactive home, project pages, and an art ga
 - Run `npm run assets:build` (runs automatically on `npm run build`)
 - Add new gallery entries in `galleryData.ts` with matching `id`s
 - For gallery story/reference photos, point `story.references[].src` at `/gallery-references-src/...`; production automatically maps to optimized `/gallery-references/...`
+- In `npm run dev`, gallery artwork list is read from `public/gallery-src` (no compression step required); `npm run build` still uses compressed `public/gallery/*`
+- CI deploy skips asset compression (`SKIP_ASSETS_BUILD=1`) and relies on committed optimized assets/manifests
 
 ### Quality & Size Settings
 Edit `scripts/build-assets.mjs` (or set env vars) to tune output:

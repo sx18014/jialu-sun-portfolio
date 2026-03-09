@@ -44,12 +44,39 @@ export interface GalleryItem {
   };
 }
 
+export interface GalleryManifestLikeItem {
+  id: string;
+  width: number;
+  height: number;
+  srcWebp: string;
+  srcAvif: string;
+}
+
 // Add a new artwork by dropping {id}.png into public/gallery-src and adding copy here.
 type GalleryCopy = Pick<GalleryItem, 'id' | 'title' | 'description' | 'story'>;
 
-const GALLERY_COPY: GalleryCopy[] = [
+export const GALLERY_COPY: GalleryCopy[] = [
   { id: 'art01', title: 'ChristmasCake', description: '2024 Christmas Eve cake moment with Panpan 🍰' },
-  { id: 'art03', title: 'Artwork 02', description: 'We built a tiny tower so all six of us could live inside one Polaroid (SH) 📸' },
+  {
+    id: 'art03',
+    title: 'Polaroid Tower 宝利来塔',
+    description: 'We built a tiny tower so all six of us could live inside one Polaroid (SH) 📸',
+    story: {
+      mode: 'multi-ref',
+      notes:
+        'At the end of 2024, when we returned to Shanghai, the six of us took Polaroid photos together. We would be heading to different cities and countries, and this might have been the last time we would all appear in the same frame. We stacked random objects into a small tower to hold up the camera so it could include everyone, and we ended up taking countless photos.',
+      references: [
+        {
+          src: withGalleryReference('/gallery-references-src/art03/ref-01.JPG'),
+          caption: 'Photo of the tower'
+        },
+        {
+          src: withGalleryReference('/gallery-references-src/art03/ref-02.JPG'),
+          caption: 'Photos of us'
+        }
+      ]
+    }
+  },
   { id: 'art04', title: 'Artwork 03', description: 'Late night subway, 50th St NYC 🌙' },
   { id: 'art02', title: 'Artwork 04', description: 'A little 🦔 tidying books, for Panpan’s bookstore Christmas card 2025' },
   { id: 'art05', title: 'Artwork 05', description: 'Two penguins sliding down the snow, very carefully ❄️' },
@@ -67,7 +94,7 @@ const GALLERY_COPY: GalleryCopy[] = [
   { id: 'art17', title: 'Artwork 17', description: 'Before I left Pittsburgh in 2023, Ray was playing guitar in my studio 🎸' },
   {
     id: 'art18',
-    title: 'Artwork 18',
+    title: 'Faded tulip 凋谢的郁金香',
     description: 'I loved my tulip more when they faded away - another try of Sanyu’s style',
     story: {
       mode: 'multi-ref',
@@ -89,29 +116,83 @@ const GALLERY_COPY: GalleryCopy[] = [
   { id: 'art20', title: 'Artwork 20', description: 'Caffè Vittoria North End Boston with YJ' },
   { id: 'art21', title: 'Artwork 21', description: 'Takoyaki with Cleo & YJ' },
   { id: 'art22', title: 'Artwork 22', description: 'The day I left Shanghai, late 2024, Meilong Middle School was crowded' },
-  { id: 'art23', title: 'Artwork 23', description: 'Mocha watching YJ plant outside, E3 apartment, 2024' },
-  { id: 'art24', title: 'Artwork 24', description: 'Cozy moment with Mocha zzzZZZZZZ' },
+  {
+    id: 'art23',
+    title: '螳螂捕蝉黄雀在后',
+    description: 'Mocha watching YJ plant outside, E3 apartment, 2024',
+    story: {
+      mode: 'single-ref',
+      notes:
+        'While YJ was tending cherry tomatoes outside, Mocha watched her with quiet focus. The ultraviolet grow light indoors became a strong source of color inspiration for me. The light felt abrupt and unnatural, yet I found myself enjoying the moment exactly as it was.',
+      references: [
+        {
+          src: withGalleryReference('/gallery-references-src/art23/ref-01.jpeg'),
+          caption: 'Photo of YJ & Mocha with ultraviolet grow light'
+        }
+      ]
+    }
+  },
+  {
+    id: 'art24',
+    title: 'Napping together 午睡',
+    description: 'Cozy moment with Mocha zzzZZZZZZ',
+    story: {
+      mode: 'multi-ref',
+      notes:
+        'On a sunny and cozy afternoon, Mocha and YJ both felt sleepy and napped together on the bed. In that moment, I felt a sense of peace and happiness.',
+      references: [
+        {
+          src: withGalleryReference('/gallery-references-src/art24/ref-01.JPG'),
+          caption: 'Photo of YJ & Mocha'
+        },
+        {
+          src: withGalleryReference('/gallery-references-src/art24/ref-02.jpg'),
+          caption: 'Color reference'
+        }
+      ]
+    }
+  },
   { id: 'art25', title: 'Artwork 25', description: 'My first vacation, Hainan 2005' },
   { id: 'art26', title: 'Artwork 26', description: 'I was scared but looks happy on this horse, Hainan 2005' },
   { id: 'art27', title: 'Artwork 27', description: 'Octopus is delicious and pretty' },
   { id: 'art28', title: 'Artwork 28', description: 'I missed my best friends wedding 2025 summer, she is gorgeous.' },
   { id: 'art29', title: 'Artwork 29', description: 'Mocha loves the toy duck' },
-  { id: 'art30', title: 'Artwork 30', description: 'My first vacation, Hainan 2005' }
+  { id: 'art30', title: 'Artwork 30', description: 'My first vacation, Hainan 2005' },
+  {
+    id: 'art31',
+    title: 'Itchy Itchy Goat 痒羊 ',
+    description: 'Let me scratch! Sooo itchy',
+    story: {
+      mode: 'single-ref',
+      notes:
+        'In the fall of 2024, we visited Tougas Family Farm for apple picking for the first time. I hadn’t expected the farm to be home to so many cute animals! One little goat spent a long time scratching with its horns, looking incredibly cute and comfortable. I couldn’t stop watching.',
+      references: [
+        {
+          src: withGalleryReference('/gallery-references-src/art31/ref-01.gif'),
+          caption: 'Photo of that scratching goat'
+        }
+      ]
+    }
+  },
 ];
 
-const manifestById = new Map(GALLERY_MANIFEST.map((item) => [item.id, item]));
+export const buildGalleryItems = (manifestItems: GalleryManifestLikeItem[]): GalleryItem[] => {
+  const manifestById = new Map(manifestItems.map((item) => [item.id, item]));
 
-export const GALLERY_ITEMS: GalleryItem[] = GALLERY_COPY.flatMap((copy) => {
-  const manifest = manifestById.get(copy.id);
-  if (!manifest) return [];
+  return GALLERY_COPY.flatMap((copy) => {
+    const manifest = manifestById.get(copy.id);
+    if (!manifest) return [];
 
-  return [
-    {
-      ...copy,
-      imageWebp: withBase(manifest.srcWebp),
-      imageAvif: manifest.srcAvif ? withBase(manifest.srcAvif) : '',
-      width: manifest.width,
-      height: manifest.height
-    }
-  ];
-});
+    return [
+      {
+        ...copy,
+        imageWebp: withBase(manifest.srcWebp),
+        imageAvif: manifest.srcAvif ? withBase(manifest.srcAvif) : '',
+        width: manifest.width,
+        height: manifest.height
+      }
+    ];
+  });
+};
+
+export const GALLERY_ITEMS: GalleryItem[] = buildGalleryItems(GALLERY_MANIFEST);

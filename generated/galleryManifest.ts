@@ -211,5 +211,12 @@ export const GALLERY_MANIFEST: GalleryManifestItem[] = [
     "height": 2667,
     "srcWebp": "/gallery/art29.webp",
     "srcAvif": "/gallery/art29.avif"
+  },
+  {
+    "id": "art31",
+    "width": 2000,
+    "height": 2000,
+    "srcWebp": "/gallery/art31.webp",
+    "srcAvif": "/gallery/art31.avif"
   }
 ];

@@ -6,6 +6,8 @@ import react from '@vitejs/plugin-react';
 import sharp from 'sharp';
 
 const COLLAGE_MAX_HEIGHT = 300;
+const GALLERY_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.webp']);
+const GALLERY_EXT_PRIORITY = ['.webp', '.png', '.jpg', '.jpeg', '.tif', '.tiff'];
 const COLLAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.gif', '.webp']);
 const COLLAGE_EXT_PRIORITY = ['.gif', '.webp', '.png', '.jpg', '.jpeg', '.tif', '.tiff'];
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.webp'];
@@ -76,6 +78,30 @@ const listProjectDirs = async (projectsRoot: string) =>
 const listSortedFiles = async (dir: string) =>
   (await fs.readdir(dir).catch(() => []))
     .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+
+const buildDevGalleryManifest = async (publicRoot: string) => {
+  const gallerySrcDir = path.join(publicRoot, 'gallery-src');
+  const files = await listSortedFiles(gallerySrcDir);
+  const entries = files.filter((file) => GALLERY_EXTS.has(path.extname(file).toLowerCase()));
+  const selected = pickPreferredFiles(entries, GALLERY_EXT_PRIORITY);
+  const items: Array<{ id: string; width: number; height: number; srcWebp: string; srcAvif: string }> = [];
+
+  for (const entry of selected) {
+    const sourcePath = path.join(gallerySrcDir, entry.file);
+    const metadata = await sharp(sourcePath).metadata().catch(() => null);
+    if (!metadata?.width || !metadata?.height) continue;
+
+    items.push({
+      id: entry.id,
+      width: metadata.width,
+      height: metadata.height,
+      srcWebp: `/gallery-src/${entry.file}`,
+      srcAvif: ''
+    });
+  }
+
+  return items;
+};
 
 const buildDevCollageManifest = async (projectsRoot: string) => {
   const manifest: Record<string, Array<{ id: string; width: number; height: number; src: string }>> = {};
@@ -184,11 +210,29 @@ const devCollageManifestPlugin = (): Plugin => ({
     server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
       const requestPath = (req.url ?? '').split('?')[0];
       const route = requestPath.endsWith('/__dev-collage-manifest')
-        ? { name: 'collage', buildManifest: buildDevCollageManifest }
+        ? {
+            name: 'collage',
+            rootPath: path.join(server.config.root, 'public', 'projects'),
+            buildManifest: buildDevCollageManifest
+          }
         : requestPath.endsWith('/__dev-approach-manifest')
-          ? { name: 'approach', buildManifest: buildDevApproachManifest }
+          ? {
+              name: 'approach',
+              rootPath: path.join(server.config.root, 'public', 'projects'),
+              buildManifest: buildDevApproachManifest
+            }
           : requestPath.endsWith('/__dev-prototype-manifest')
-            ? { name: 'prototype', buildManifest: buildDevPrototypeManifest }
+            ? {
+                name: 'prototype',
+                rootPath: path.join(server.config.root, 'public', 'projects'),
+                buildManifest: buildDevPrototypeManifest
+              }
+            : requestPath.endsWith('/__dev-gallery-manifest')
+              ? {
+                  name: 'gallery',
+                  rootPath: path.join(server.config.root, 'public'),
+                  buildManifest: buildDevGalleryManifest
+                }
             : null;
 
       if (!route) {
@@ -197,8 +241,7 @@ const devCollageManifestPlugin = (): Plugin => ({
       }
 
       try {
-        const projectsRoot = path.join(server.config.root, 'public', 'projects');
-        const manifest = await route.buildManifest(projectsRoot);
+        const manifest = await route.buildManifest(route.rootPath);
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Cache-Control', 'no-store');
         res.end(JSON.stringify(manifest));

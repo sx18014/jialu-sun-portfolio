@@ -26,6 +26,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          SKIP_ASSETS_BUILD: "1"
 
       - name: Add CNAME file
         run: |
