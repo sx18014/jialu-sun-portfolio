@@ -136,6 +136,30 @@ export const PROJECT_COLLAGE_MANIFEST: Record<string, ProjectCollageItem[]> = {
       "width": 533,
       "height": 300,
       "src": "/projects/elk/collage/06.gif"
+    },
+    {
+      "id": "07",
+      "width": 199,
+      "height": 300,
+      "src": "/projects/elk/collage/07.webp"
+    },
+    {
+      "id": "08",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/elk/collage/08.webp"
+    },
+    {
+      "id": "09",
+      "width": 452,
+      "height": 300,
+      "src": "/projects/elk/collage/09.webp"
+    },
+    {
+      "id": "10",
+      "width": 400,
+      "height": 300,
+      "src": "/projects/elk/collage/10.webp"
     }
   ],
   "freedomplaza": [

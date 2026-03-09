@@ -1,6 +1,31 @@
 import { withBase } from './constants';
 import { GALLERY_MANIFEST } from './generated/galleryManifest';
 
+const GALLERY_REFERENCE_SOURCE_PREFIX = '/gallery-references-src/';
+const GALLERY_REFERENCE_OUTPUT_PREFIX = '/gallery-references/';
+
+// Author with /gallery-references-src paths for easy local editing.
+// Dev uses originals; production swaps to optimized /gallery-references outputs.
+const withGalleryReference = (sourcePath: string) => {
+  if (!sourcePath.startsWith(GALLERY_REFERENCE_SOURCE_PREFIX)) {
+    return withBase(sourcePath);
+  }
+
+  if (import.meta.env.DEV) {
+    return withBase(sourcePath);
+  }
+
+  const outputPathWithoutExt = sourcePath
+    .replace(GALLERY_REFERENCE_SOURCE_PREFIX, GALLERY_REFERENCE_OUTPUT_PREFIX)
+    .replace(/\.[^/.]+$/, '');
+
+  if (sourcePath.toLowerCase().endsWith('.gif')) {
+    return withBase(`${outputPathWithoutExt}.gif`);
+  }
+
+  return withBase(`${outputPathWithoutExt}.webp`);
+};
+
 export interface GalleryItem {
   id: string;
   title: string;
@@ -9,10 +34,20 @@ export interface GalleryItem {
   imageAvif: string;
   width: number;
   height: number;
+  story?: {
+    mode: 'single-ref' | 'multi-ref' | 'sequence';
+    notes?: string;
+    references?: Array<{
+      src: string;
+      caption?: string;
+    }>;
+  };
 }
 
 // Add a new artwork by dropping {id}.png into public/gallery-src and adding copy here.
-const GALLERY_COPY: Array<Pick<GalleryItem, 'id' | 'title' | 'description'>> = [
+type GalleryCopy = Pick<GalleryItem, 'id' | 'title' | 'description' | 'story'>;
+
+const GALLERY_COPY: GalleryCopy[] = [
   { id: 'art01', title: 'ChristmasCake', description: '2024 Christmas Eve cake moment with Panpan 🍰' },
   { id: 'art03', title: 'Artwork 02', description: 'We built a tiny tower so all six of us could live inside one Polaroid (SH) 📸' },
   { id: 'art04', title: 'Artwork 03', description: 'Late night subway, 50th St NYC 🌙' },
@@ -30,7 +65,26 @@ const GALLERY_COPY: Array<Pick<GalleryItem, 'id' | 'title' | 'description'>> = [
   { id: 'art15', title: 'Artwork 15', description: 'Apartment hunting in Boston, this red chair caught my eye in the snow' },
   { id: 'art16', title: 'Artwork 16', description: 'A mountain goat family crossed my path while hiking at Glacier National Park summer 2025' },
   { id: 'art17', title: 'Artwork 17', description: 'Before I left Pittsburgh in 2023, Ray was playing guitar in my studio 🎸' },
-  { id: 'art18', title: 'Artwork 18', description: 'I loved my tulip more when they faded away - another try of Sanyu’s style' },
+  {
+    id: 'art18',
+    title: 'Artwork 18',
+    description: 'I loved my tulip more when they faded away - another try of Sanyu’s style',
+    story: {
+      mode: 'multi-ref',
+      notes:
+        'Sanyu’s oil paintings on canvas inspired this still life, both in composition and color. I was drawn to the tension between the black contour lines and the yellow background. After retiring, my father also began experimenting with oil still life painting, and this work became the starting point of a dialogue between us.',
+      references: [
+        {
+          src: withGalleryReference('/gallery-references-src/art18/ref-01.JPG'),
+          caption: 'Two weeks later, my tulips wilted.'
+        },
+        {
+          src: withGalleryReference('/gallery-references-src/art18/ref-02.jpeg'),
+          caption: 'Sanyu-Lotus 常玉-荷'
+        }
+      ]
+    }
+  },
   { id: 'art19', title: 'Artwork 19', description: 'We were scale-testing Watershed, surrounded by Brian’s bubbly piece, with Diana and Elise' },
   { id: 'art20', title: 'Artwork 20', description: 'Caffè Vittoria North End Boston with YJ' },
   { id: 'art21', title: 'Artwork 21', description: 'Takoyaki with Cleo & YJ' },

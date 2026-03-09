@@ -8,6 +8,8 @@ const generatedDir = path.join(cwd, 'generated');
 const GALLERY_INPUT = path.join(cwd, 'public', 'gallery-src');
 const GALLERY_OUTPUT = path.join(cwd, 'public', 'gallery');
 const GALLERY_MANIFEST = path.join(generatedDir, 'galleryManifest.ts');
+const GALLERY_REFERENCE_INPUT = path.join(cwd, 'public', 'gallery-references-src');
+const GALLERY_REFERENCE_OUTPUT = path.join(cwd, 'public', 'gallery-references');
 
 const PROJECTS_ROOT = path.join(cwd, 'public', 'projects');
 const COLLAGE_SRC_NAME = 'collage-src';
@@ -24,6 +26,8 @@ const GALLERY_MAX_WIDTH = Number(process.env.GALLERY_MAX_WIDTH ?? 2000);
 const GALLERY_WEBP_QUALITY = Number(process.env.GALLERY_WEBP_QUALITY ?? 80);
 const GALLERY_AVIF_QUALITY = Number(process.env.GALLERY_AVIF_QUALITY ?? 50);
 const GALLERY_ENABLE_AVIF = process.env.GALLERY_AVIF !== '0';
+const GALLERY_REFERENCE_MAX_WIDTH = Number(process.env.GALLERY_REFERENCE_MAX_WIDTH ?? 1400);
+const GALLERY_REFERENCE_WEBP_QUALITY = Number(process.env.GALLERY_REFERENCE_WEBP_QUALITY ?? 82);
 
 const COLLAGE_MAX_HEIGHT = Number(process.env.COLLAGE_MAX_HEIGHT ?? 300);
 const COLLAGE_WEBP_QUALITY = Number(process.env.COLLAGE_WEBP_QUALITY ?? 92);
@@ -33,6 +37,8 @@ const PROTOTYPE_MAX_WIDTH = Number(process.env.PROTOTYPE_MAX_WIDTH ?? 1200);
 const PROTOTYPE_WEBP_QUALITY = Number(process.env.PROTOTYPE_WEBP_QUALITY ?? 90);
 
 const GALLERY_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff']);
+const GALLERY_REFERENCE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.webp', '.gif']);
+const GALLERY_REFERENCE_EXT_PRIORITY = ['.gif', '.webp', '.png', '.jpg', '.jpeg', '.tif', '.tiff'];
 const COLLAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.gif', '.webp']);
 const COLLAGE_EXT_PRIORITY = ['.gif', '.webp', '.png', '.jpg', '.jpeg', '.tif', '.tiff'];
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.tif', '.tiff', '.webp'];
@@ -62,6 +68,28 @@ const listDirectories = async (dir) => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+  } catch (error) {
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return [];
+    throw error;
+  }
+};
+
+const listFilesRecursive = async (dir, rootDir = dir) => {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const files = [];
+
+    for (const entry of entries) {
+      const absolutePath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...(await listFilesRecursive(absolutePath, rootDir)));
+      } else if (entry.isFile()) {
+        files.push(path.relative(rootDir, absolutePath).split(path.sep).join('/'));
+      }
+    }
+
+    files.sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+    return files;
   } catch (error) {
     if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return [];
     throw error;
@@ -214,11 +242,69 @@ const processGallery = async () => {
   console.log(`Wrote gallery manifest: ${path.relative(cwd, GALLERY_MANIFEST)}`);
 };
 
+const processGalleryReferences = async () => {
+  await ensureDir(GALLERY_REFERENCE_INPUT);
+  await fs.rm(GALLERY_REFERENCE_OUTPUT, { recursive: true, force: true });
+  await ensureDir(GALLERY_REFERENCE_OUTPUT);
+
+  const files = (await listFilesRecursive(GALLERY_REFERENCE_INPUT)).filter((file) =>
+    GALLERY_REFERENCE_EXTS.has(path.extname(file).toLowerCase())
+  );
+
+  if (files.length === 0) {
+    console.log('No gallery reference source images found in public/gallery-references-src.');
+    return;
+  }
+
+  const selected = pickPreferredRelativeFiles(files, GALLERY_REFERENCE_EXT_PRIORITY);
+
+  for (const entry of selected) {
+    const sourcePath = path.join(GALLERY_REFERENCE_INPUT, entry.file);
+    const outputRelativePath = `${entry.id}${entry.ext === '.gif' ? '.gif' : '.webp'}`;
+    const outputPath = path.join(GALLERY_REFERENCE_OUTPUT, outputRelativePath);
+    await ensureDir(path.dirname(outputPath));
+
+    if (entry.ext === '.gif') {
+      await fs.copyFile(sourcePath, outputPath);
+      console.log(`Copied gallery reference GIF ${entry.file} -> ${outputRelativePath}`);
+      continue;
+    }
+
+    await sharp(sourcePath)
+      .rotate()
+      .resize({ width: GALLERY_REFERENCE_MAX_WIDTH, withoutEnlargement: true })
+      .webp({ quality: GALLERY_REFERENCE_WEBP_QUALITY })
+      .toFile(outputPath);
+    console.log(`Optimized gallery reference ${entry.file} -> ${outputRelativePath}`);
+  }
+};
+
 const pickPreferredFiles = (files, priority) => {
   const grouped = new Map();
   for (const file of files) {
     const ext = path.extname(file).toLowerCase();
     const id = path.parse(file).name;
+    if (!grouped.has(id)) grouped.set(id, []);
+    grouped.get(id).push({ file, ext });
+  }
+
+  const selected = [];
+  for (const [id, variants] of grouped.entries()) {
+    const chosen = priority.map((ext) => variants.find((item) => item.ext === ext)).find(Boolean);
+    if (chosen) {
+      selected.push({ id, file: chosen.file, ext: chosen.ext });
+    }
+  }
+
+  selected.sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
+  return selected;
+};
+
+const pickPreferredRelativeFiles = (files, priority) => {
+  const grouped = new Map();
+  for (const file of files) {
+    const ext = path.extname(file).toLowerCase();
+    const id = file.slice(0, -ext.length);
     if (!grouped.has(id)) grouped.set(id, []);
     grouped.get(id).push({ file, ext });
   }
@@ -444,6 +530,7 @@ const processProjectPrototypes = async () => {
 
 const main = async () => {
   await processGallery();
+  await processGalleryReferences();
   await processProjectCollages();
   await processProjectApproach();
   await processProjectPrototypes();
